@@ -576,12 +576,193 @@ router.put('/therapy-plans/:id', async (req, res) => {
 router.get('/patients', async (req, res) => {
   try {
     const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { recent, page = 1, limit = 10 } = req.query;
     
-    const patients = await Patient.find({ preferredPractitioner: practitioner._id })
+    let query = { preferredPractitioner: practitioner._id };
+    let patients;
+    
+    if (recent === 'true') {
+      // Get recent patients (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      patients = await Patient.find({
+        ...query,
+        createdAt: { $gte: thirtyDaysAgo }
+      })
       .populate('userId', 'firstName lastName email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(5);
+    } else {
+      patients = await Patient.find(query)
+        .populate('userId', 'firstName lastName email phone')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+    }
 
     res.json(patients);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get individual patient details
+router.get('/patients/:id', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const patient = await Patient.findOne({
+      _id: req.params.id,
+      preferredPractitioner: practitioner._id
+    })
+    .populate('userId', 'firstName lastName email phone')
+    .populate('medicalHistory');
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Get patient's appointments
+    const appointments = await Appointment.find({ 
+      patientId: patient._id,
+      practitionerId: practitioner._id 
+    })
+    .sort({ appointmentDate: -1 })
+    .limit(10);
+
+    // Get patient's therapy plans
+    const therapyPlans = await TherapyPlan.find({ 
+      patientId: patient._id,
+      practitionerId: practitioner._id 
+    })
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+    res.json({
+      ...patient.toObject(),
+      recentAppointments: appointments,
+      therapyPlans
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get patient statistics
+router.get('/patients/:id/stats', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const patientId = req.params.id;
+    
+    const [totalAppointments, completedAppointments, activeTherapyPlans, totalInvoices, paidInvoices] = await Promise.all([
+      Appointment.countDocuments({ 
+        patientId, 
+        practitionerId: practitioner._id 
+      }),
+      Appointment.countDocuments({ 
+        patientId, 
+        practitionerId: practitioner._id,
+        status: 'completed' 
+      }),
+      TherapyPlan.countDocuments({ 
+        patientId, 
+        practitionerId: practitioner._id,
+        status: 'active' 
+      }),
+      Invoice.countDocuments({ 
+        patientId, 
+        practitionerId: practitioner._id 
+      }),
+      Invoice.countDocuments({ 
+        patientId, 
+        practitionerId: practitioner._id,
+        paymentStatus: 'paid' 
+      })
+    ]);
+
+    res.json({
+      totalAppointments,
+      completedAppointments,
+      activeTherapyPlans,
+      totalInvoices,
+      paidInvoices,
+      completionRate: totalAppointments > 0 ? ((completedAppointments / totalAppointments) * 100).toFixed(1) : 0,
+      paymentRate: totalInvoices > 0 ? ((paidInvoices / totalInvoices) * 100).toFixed(1) : 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Bulk patient actions
+router.post('/patients/bulk-action', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { patientIds, action } = req.body;
+    
+    if (!patientIds || !Array.isArray(patientIds) || !action) {
+      return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    let result;
+    switch (action) {
+      case 'archive':
+        result = await Patient.updateMany(
+          { 
+            _id: { $in: patientIds },
+            preferredPractitioner: practitioner._id 
+          },
+          { isArchived: true }
+        );
+        break;
+      case 'unarchive':
+        result = await Patient.updateMany(
+          { 
+            _id: { $in: patientIds },
+            preferredPractitioner: practitioner._id 
+          },
+          { isArchived: false }
+        );
+        break;
+      case 'delete':
+        result = await Patient.deleteMany({
+          _id: { $in: patientIds },
+          preferredPractitioner: practitioner._id
+        });
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    res.json({
+      success: true,
+      message: `${action} completed successfully`,
+      modifiedCount: result.modifiedCount || result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete patient
+router.delete('/patients/:id', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const patient = await Patient.findOneAndDelete({
+      _id: req.params.id,
+      preferredPractitioner: practitioner._id
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Patient deleted successfully'
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -1171,557 +1352,879 @@ router.put('/notifications/:id/read', async (req, res) => {
   }
 });
 
-// Get patient details with stats
-router.get('/patients/:id', async (req, res) => {
+// Mark notification as unread
+router.patch('/notifications/:id/unread', async (req, res) => {
   try {
-    const practitioner = await Practitioner.findOne({ userId: req.user._id });
-    
-    const patient = await Patient.findOne({
+    const notification = await Notification.findOne({
       _id: req.params.id,
-      preferredPractitioner: practitioner._id
-    })
-    .populate('userId', 'firstName lastName email phone')
-    .populate({
-      path: 'therapyPlans',
-      match: { practitionerId: practitioner._id }
-    })
-    .populate({
-      path: 'appointments',
-      match: { practitionerId: practitioner._id },
-      options: { sort: { appointmentDate: -1 }, limit: 10 }
-    })
-    .populate({
-      path: 'reviews',
-      match: { practitionerId: practitioner._id },
-      options: { sort: { createdAt: -1 }, limit: 5 }
+      userId: req.user._id
     });
 
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
+    if (!notification) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Notification not found' 
+      });
     }
 
-    res.json(patient);
+    notification.isRead = false;
+    await notification.save();
+
+    res.json({ 
+      success: true,
+      message: 'Notification marked as unread' 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Mark notification unread error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark notification as unread',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
-// Get patient stats
-router.get('/patients/:id/stats', async (req, res) => {
+// Archive notification
+router.patch('/notifications/:id/archive', async (req, res) => {
+  try {
+    const notification = await Notification.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!notification) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Notification not found' 
+      });
+    }
+
+    notification.isArchived = true;
+    await notification.save();
+
+    res.json({ 
+      success: true,
+      message: 'Notification archived' 
+    });
+  } catch (error) {
+    console.error('Archive notification error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to archive notification',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Delete notification
+router.delete('/notifications/:id', async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!notification) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Notification not found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Notification deleted' 
+    });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete notification',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Bulk mark notifications as read
+router.patch('/notifications/bulk-read', async (req, res) => {
+  try {
+    const { notificationIds } = req.body;
+    
+    if (!notificationIds || !Array.isArray(notificationIds)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid notification IDs provided' 
+      });
+    }
+
+    await Notification.updateMany(
+      {
+        _id: { $in: notificationIds },
+        userId: req.user._id
+      },
+      { isRead: true }
+    );
+
+    res.json({ 
+      success: true,
+      message: 'Notifications marked as read' 
+    });
+  } catch (error) {
+    console.error('Bulk mark read error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark notifications as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Bulk archive notifications
+router.patch('/notifications/bulk-archive', async (req, res) => {
+  try {
+    const { notificationIds } = req.body;
+    
+    if (!notificationIds || !Array.isArray(notificationIds)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid notification IDs provided' 
+      });
+    }
+
+    await Notification.updateMany(
+      {
+        _id: { $in: notificationIds },
+        userId: req.user._id
+      },
+      { isArchived: true }
+    );
+
+    res.json({ 
+      success: true,
+      message: 'Notifications archived' 
+    });
+  } catch (error) {
+    console.error('Bulk archive error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to archive notifications',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get availability schedule
+router.get('/availability', async (req, res) => {
   try {
     const practitioner = await Practitioner.findOne({ userId: req.user._id });
     
-    const [activeTherapyPlans, completedTherapyPlans, totalAppointments, nextAppointment] = await Promise.all([
-      TherapyPlan.countDocuments({
-        patientId: req.params.id,
-        practitionerId: practitioner._id,
-        status: 'active'
-      }),
-      TherapyPlan.countDocuments({
-        patientId: req.params.id,
-        practitionerId: practitioner._id,
-        status: 'completed'
-      }),
-      Appointment.countDocuments({
-        patientId: req.params.id,
-        practitionerId: practitioner._id
-      }),
-      Appointment.findOne({
-        patientId: req.params.id,
-        practitionerId: practitioner._id,
-        appointmentDate: { $gt: new Date() },
-        status: { $in: ['scheduled', 'confirmed'] }
-      }).sort({ appointmentDate: 1 })
-    ]);
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
+    }
 
     res.json({
-      activeTherapyPlans,
-      completedTherapyPlans,
-      totalAppointments,
-      nextAppointment: nextAppointment?.appointmentDate
+      success: true,
+      schedule: practitioner.availability || {},
+      timezone: practitioner.timezone || 'UTC'
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Get availability error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get availability',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
-// Get single appointment details
-router.get('/appointments/:id', async (req, res) => {
+// Update availability schedule
+router.put('/availability', async (req, res) => {
   try {
     const practitioner = await Practitioner.findOne({ userId: req.user._id });
     
-    const appointment = await Appointment.findOne({
-      _id: req.params.id,
-      practitionerId: practitioner._id
-    })
-    .populate({
-      path: 'patientId',
-      populate: {
-        path: 'userId',
-        select: 'firstName lastName email phone'
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
+    }
+
+    const { schedule, timezone } = req.body;
+    
+    practitioner.availability = schedule;
+    if (timezone) practitioner.timezone = timezone;
+    
+    await practitioner.save();
+
+    res.json({
+      success: true,
+      message: 'Availability updated successfully',
+      schedule: practitioner.availability
+    });
+  } catch (error) {
+    console.error('Update availability error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update availability',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Toggle availability status
+router.patch('/availability/toggle', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
+    }
+
+    practitioner.isAvailable = !practitioner.isAvailable;
+    await practitioner.save();
+
+    res.json({
+      success: true,
+      message: `Availability ${practitioner.isAvailable ? 'enabled' : 'disabled'}`,
+      isAvailable: practitioner.isAvailable
+    });
+  } catch (error) {
+    console.error('Toggle availability error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to toggle availability',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get time slots
+router.get('/time-slots', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { start, end } = req.query;
+    
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
+    }
+
+    // Generate time slots based on availability and existing appointments
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    const appointments = await Appointment.find({
+      practitionerId: practitioner._id,
+      appointmentDate: { $gte: startDate, $lte: endDate }
+    });
+
+    // Mock time slots generation - in real implementation, this would be more sophisticated
+    const timeSlots = [];
+    const availability = practitioner.availability || {};
+    
+    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayAvailability = availability[dayName];
+      
+      if (dayAvailability && dayAvailability.isWorking) {
+        dayAvailability.slots?.forEach(slot => {
+          timeSlots.push({
+            date: new Date(date),
+            startTime: slot.start,
+            endTime: slot.end,
+            isAvailable: true,
+            breakStart: slot.breakStart,
+            breakEnd: slot.breakEnd
+          });
+        });
       }
-    })
-    .populate('therapyPlanId');
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    res.json(appointment);
+    res.json(timeSlots);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Get time slots error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get time slots',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
-// Update appointment status (PATCH method)
-router.patch('/appointments/:id/status', async (req, res) => {
+// Get sessions (appointments with session context)
+router.get('/sessions', async (req, res) => {
   try {
     const practitioner = await Practitioner.findOne({ userId: req.user._id });
-    const appointment = await Appointment.findOne({
-      _id: req.params.id,
-      practitionerId: practitioner._id
-    });
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
-
-    appointment.status = req.body.status;
-    await appointment.save();
-
-    // Create notification for patient if status changed
-    const notification = new Notification({
-      userId: appointment.patientId,
-      title: 'Appointment Status Updated',
-      message: `Your appointment status has been updated to: ${req.body.status}`,
-      type: 'appointment',
-      priority: 'medium',
-      relatedId: appointment._id,
-      relatedModel: 'Appointment'
-    });
-
-    await notification.save();
-    req.io?.to(appointment.patientId.toString()).emit('notification', notification);
-
-    res.json({ message: 'Appointment status updated successfully', appointment });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get reports
-router.get('/reports', async (req, res) => {
-  try {
-    const practitioner = await Practitioner.findOne({ userId: req.user._id });
-    const { type = 'overview', period = 'month', startDate, endDate } = req.query;
+    const { status, date, page = 1, limit = 10 } = req.query;
     
-    let dateFilter = {};
-    const now = new Date();
-    
-    if (startDate && endDate) {
-      dateFilter = {
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate)
-        }
-      };
-    } else {
-      switch (period) {
-        case 'week':
-          dateFilter.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
-          break;
-        case 'month':
-          dateFilter.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
-          break;
-        case 'quarter':
-          dateFilter.createdAt = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
-          break;
-        case 'year':
-          dateFilter.createdAt = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
-          break;
-      }
-    }
-
-    const baseQuery = { practitionerId: practitioner._id, ...dateFilter };
-    
-    let reportData = {};
-    
-    switch (type) {
-      case 'overview':
-        const [totalPatients, totalAppointments, totalRevenue, avgRating] = await Promise.all([
-          Patient.countDocuments({ preferredPractitioner: practitioner._id }),
-          Appointment.countDocuments(baseQuery),
-          Invoice.aggregate([
-            { $match: { ...baseQuery, paymentStatus: 'paid' } },
-            { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-          ]),
-          Review.aggregate([
-            { $match: { practitionerId: practitioner._id } },
-            { $group: { _id: null, avgRating: { $avg: '$rating' } } }
-          ])
-        ]);
-        
-        reportData = {
-          totalPatients,
-          totalAppointments,
-          totalRevenue: totalRevenue[0]?.total || 0,
-          avgRating: avgRating[0]?.avgRating || 0
-        };
-        break;
-        
-      case 'patients':
-        const patientStats = await Patient.aggregate([
-          { $match: { preferredPractitioner: practitioner._id } },
-          {
-            $group: {
-              _id: '$gender',
-              count: { $sum: 1 }
-            }
-          }
-        ]);
-        reportData = { patientDemographics: patientStats };
-        break;
-        
-      case 'revenue':
-        const revenueData = await Invoice.aggregate([
-          { $match: { ...baseQuery, paymentStatus: 'paid' } },
-          {
-            $group: {
-              _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-              amount: { $sum: '$totalAmount' },
-              count: { $sum: 1 }
-            }
-          },
-          { $sort: { '_id': 1 } }
-        ]);
-        reportData = { monthlyRevenue: revenueData };
-        break;
-        
-      default:
-        reportData = { message: 'Report type not implemented yet' };
-    }
-
-    res.json(reportData);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Generate report
-router.post('/reports/generate', async (req, res) => {
-  try {
-    const { type, period, dateRange, format } = req.body;
-    
-    // This would integrate with a PDF generation library
-    // For now, return a success message
-    res.json({ 
-      message: 'Report generation initiated',
-      type,
-      period,
-      format,
-      downloadUrl: `/api/practitioner/reports/download/${Date.now()}.${format}`
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Export data
-router.get('/reports/export', async (req, res) => {
-  try {
-    const { format, type, period } = req.query;
-    
-    // This would integrate with data export libraries
-    // For now, return a success message
-    res.json({ 
-      message: 'Data export initiated',
-      format,
-      type,
-      period,
-      downloadUrl: `/api/practitioner/reports/export/${Date.now()}.${format}`
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get reviews with stats
-router.get('/reviews', validateCommonParams, async (req, res) => {
-  try {
-    const practitioner = await Practitioner.findOne({ userId: req.user._id });
-    const { page = 1, limit = 10, rating, stats } = req.query;
-
-    if (stats === 'true') {
-      // Return stats for feedback management
-      const [totalReviews, avgRating, ratingDistribution, recentHighlights] = await Promise.all([
-        Review.countDocuments({ practitionerId: practitioner._id }),
-        Review.aggregate([
-          { $match: { practitionerId: practitioner._id } },
-          { $group: { _id: null, avgRating: { $avg: '$rating' } } }
-        ]),
-        Review.aggregate([
-          { $match: { practitionerId: practitioner._id } },
-          {
-            $group: {
-              _id: '$rating',
-              count: { $sum: 1 }
-            }
-          }
-        ]),
-        Review.find({ practitionerId: practitioner._id, rating: { $gte: 4 } })
-          .populate({
-            path: 'patientId',
-            populate: { path: 'userId', select: 'firstName lastName' }
-          })
-          .sort({ createdAt: -1 })
-          .limit(3)
-      ]);
-
-      const distribution = {};
-      ratingDistribution.forEach(item => {
-        distribution[item._id] = item.count;
-      });
-
-      const highlights = recentHighlights.map(review => ({
-        rating: review.rating,
-        comment: review.comment,
-        patientName: review.isAnonymous 
-          ? 'Anonymous Patient' 
-          : `${review.patientId?.userId?.firstName} ${review.patientId?.userId?.lastName}`,
-        date: review.createdAt
-      }));
-
-      return res.json({
-        totalReviews,
-        averageRating: avgRating[0]?.avgRating || 0,
-        positiveReviews: ratingDistribution.filter(r => r._id >= 4).reduce((sum, r) => sum + r.count, 0),
-        monthlyReviews: await Review.countDocuments({
-          practitionerId: practitioner._id,
-          createdAt: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) }
-        }),
-        ratingDistribution: distribution,
-        recentHighlights: highlights
-      });
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
     }
 
     let query = { practitionerId: practitioner._id };
-    if (rating) query.rating = parseInt(rating);
+    
+    if (status && status !== 'all') query.status = status;
+    if (date) {
+      const startDate = new Date(date);
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      query.appointmentDate = { $gte: startDate, $lte: endDate };
+    }
 
-    const reviews = await Review.find(query)
+    const sessions = await Appointment.find(query)
       .populate({
         path: 'patientId',
         populate: {
           path: 'userId',
-          select: 'firstName lastName'
+          select: 'firstName lastName email phone'
         }
+      })
+      .populate('therapyPlanId')
+      .sort({ appointmentDate: -1, startTime: 1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Appointment.countDocuments(query);
+
+    res.json({
+      success: true,
+      sessions,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total
+    });
+  } catch (error) {
+    console.error('Get sessions error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get sessions',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Update session status
+router.patch('/sessions/:id/status', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { status } = req.body;
+    
+    const session = await Appointment.findOne({
+      _id: req.params.id,
+      practitionerId: practitioner._id
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    session.status = status;
+    await session.save();
+
+    // Create notification for patient
+    const notification = new Notification({
+      userId: session.patientId,
+      title: 'Session Status Updated',
+      message: `Your session status has been updated to: ${status}`,
+      type: 'appointment',
+      priority: 'medium',
+      relatedId: session._id,
+      relatedModel: 'Appointment'
+    });
+
+    await notification.save();
+    req.io.to(session.patientId.toString()).emit('notification', notification);
+
+    res.json({
+      success: true,
+      message: 'Session status updated successfully',
+      session
+    });
+  } catch (error) {
+    console.error('Update session status error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update session status',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Delete session
+router.delete('/sessions/:id', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const session = await Appointment.findOneAndDelete({
+      _id: req.params.id,
+      practitionerId: practitioner._id
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Create notification for patient
+    const notification = new Notification({
+      userId: session.patientId,
+      title: 'Session Cancelled',
+      message: `Your session scheduled for ${new Date(session.appointmentDate).toLocaleDateString()} has been cancelled`,
+      type: 'appointment',
+      priority: 'high',
+      relatedId: session._id,
+      relatedModel: 'Appointment'
+    });
+
+    await notification.save();
+    req.io.to(session.patientId.toString()).emit('notification', notification);
+
+    res.json({
+      success: true,
+      message: 'Session deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete session error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete session',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get revenue statistics
+router.get('/revenue/stats', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { timeRange = '30d' } = req.query;
+    
+    let dateFilter;
+    const now = new Date();
+    
+    switch (timeRange) {
+      case '7d':
+        dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    const [totalRevenue, paidRevenue, pendingRevenue, totalInvoices, paidInvoices] = await Promise.all([
+      Invoice.aggregate([
+        {
+          $match: {
+            practitionerId: practitioner._id,
+            createdAt: { $gte: dateFilter }
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      Invoice.aggregate([
+        {
+          $match: {
+            practitionerId: practitioner._id,
+            paymentStatus: 'paid',
+            createdAt: { $gte: dateFilter }
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      Invoice.aggregate([
+        {
+          $match: {
+            practitionerId: practitioner._id,
+            paymentStatus: 'pending',
+            createdAt: { $gte: dateFilter }
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      Invoice.countDocuments({
+        practitionerId: practitioner._id,
+        createdAt: { $gte: dateFilter }
+      }),
+      Invoice.countDocuments({
+        practitionerId: practitioner._id,
+        paymentStatus: 'paid',
+        createdAt: { $gte: dateFilter }
+      })
+    ]);
+
+    // Get revenue trend data
+    const revenueTrend = await Invoice.aggregate([
+      {
+        $match: {
+          practitionerId: practitioner._id,
+          paymentStatus: 'paid',
+          createdAt: { $gte: dateFilter }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          revenue: { $sum: '$totalAmount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id': 1 } }
+    ]);
+
+    res.json({
+      success: true,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      paidRevenue: paidRevenue[0]?.total || 0,
+      pendingRevenue: pendingRevenue[0]?.total || 0,
+      totalInvoices,
+      paidInvoices,
+      paymentRate: totalInvoices > 0 ? ((paidInvoices / totalInvoices) * 100).toFixed(1) : 0,
+      revenueTrend
+    });
+  } catch (error) {
+    console.error('Get revenue stats error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get revenue statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get revenue transactions
+router.get('/revenue/transactions', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { timeRange = '30d', status, page = 1, limit = 10 } = req.query;
+    
+    let dateFilter;
+    const now = new Date();
+    
+    switch (timeRange) {
+      case '7d':
+        dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    let query = {
+      practitionerId: practitioner._id,
+      createdAt: { $gte: dateFilter }
+    };
+    
+    if (status && status !== 'all') {
+      query.paymentStatus = status;
+    }
+
+    const transactions = await Invoice.find(query)
+      .populate({
+        path: 'patientId',
+        populate: { path: 'userId', select: 'firstName lastName email' }
       })
       .populate('appointmentId')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    const total = await Review.countDocuments(query);
+    const total = await Invoice.countDocuments(query);
 
     res.json({
-      reviews,
+      success: true,
+      transactions,
       totalPages: Math.ceil(total / limit),
       currentPage: parseInt(page),
       total
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Get revenue transactions error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get revenue transactions',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
-// Get reports
-router.get('/reports', async (req, res) => {
+// Start new conversation
+router.post('/conversations', async (req, res) => {
   try {
-    let practitioner;
-    if (req.useMockDb) {
-      const practitioners = await req.mockDb.find('practitioners', { userId: req.user._id });
-      practitioner = practitioners[0];
-    } else {
-      practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { patientId, type = 'direct' } = req.body;
+    
+    // Check if conversation already exists
+    const existingConversation = await Conversation.findOne({
+      'participants.userId': { $all: [req.user._id, patientId] },
+      type
+    });
+
+    if (existingConversation) {
+      return res.json({
+        success: true,
+        conversation: existingConversation,
+        message: 'Conversation already exists'
+      });
     }
+
+    const conversation = new Conversation({
+      participants: [
+        { userId: req.user._id, role: 'practitioner' },
+        { userId: patientId, role: 'patient' }
+      ],
+      type,
+      createdBy: req.user._id
+    });
+
+    await conversation.save();
+
+    res.status(201).json({
+      success: true,
+      conversation,
+      message: 'Conversation created successfully'
+    });
+  } catch (error) {
+    console.error('Create conversation error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create conversation',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Mark conversation as read
+router.patch('/conversations/:id/read', async (req, res) => {
+  try {
+    // Mark all messages in conversation as read
+    await Message.updateMany(
+      {
+        conversationId: req.params.id,
+        receiverId: req.user._id,
+        isRead: false
+      },
+      {
+        isRead: true,
+        readAt: new Date()
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Conversation marked as read'
+    });
+  } catch (error) {
+    console.error('Mark conversation read error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark conversation as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Reply to review
+router.post('/reviews/:id/reply', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { reply } = req.body;
+    
+    const review = await Review.findOne({
+      _id: req.params.id,
+      practitionerId: practitioner._id
+    });
+
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    review.practitionerReply = {
+      content: reply,
+      repliedAt: new Date(),
+      repliedBy: req.user._id
+    };
+
+    await review.save();
+
+    // Create notification for patient
+    const notification = new Notification({
+      userId: review.patientId,
+      title: 'Review Reply',
+      message: 'Your practitioner has replied to your review',
+      type: 'general',
+      priority: 'medium',
+      relatedId: review._id,
+      relatedModel: 'Review'
+    });
+
+    await notification.save();
+    req.io.to(review.patientId.toString()).emit('notification', notification);
+
+    res.json({
+      success: true,
+      message: 'Reply sent successfully',
+      review
+    });
+  } catch (error) {
+    console.error('Reply to review error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to reply to review',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Activate emergency mode
+router.post('/emergency-mode', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
     
     if (!practitioner) {
       return res.status(404).json({ message: 'Practitioner profile not found' });
     }
 
-    const { type = 'overview', period = 'month' } = req.query;
-    let reportData = {};
-    
-    if (req.useMockDb) {
-      const patients = await req.mockDb.find('patients', { preferredPractitioner: practitioner._id });
-      const appointments = await req.mockDb.find('appointments', { practitionerId: practitioner._id });
-      const invoices = await req.mockDb.find('invoices', { practitionerId: practitioner._id });
-      const reviews = await req.mockDb.find('reviews', { practitionerId: practitioner._id });
-
-      switch (type) {
-        case 'overview':
-          const totalRevenue = invoices
-            .filter(i => i.paymentStatus === 'paid')
-            .reduce((sum, i) => sum + (i.totalAmount || 0), 0);
-          const avgRating = reviews.length > 0 
-            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
-            : 0;
-
-          reportData = {
-            totalPatients: patients.length,
-            totalAppointments: appointments.length,
-            totalRevenue,
-            avgRating
-          };
-          break;
-          
-        default:
-          reportData = { message: 'Report type not implemented yet' };
-      }
-    } else {
-      reportData = { message: 'MongoDB reports not implemented in this demo' };
-    }
-
-    res.json(reportData);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get notification settings
-router.get('/notification-settings', async (req, res) => {
-  try {
-    const user = req.user;
-    const notificationPreferences = user.notificationPreferences || {
-      email: true,
-      push: true,
-      sms: false,
-      types: {
-        appointment: true,
-        reminder: true,
-        billing: true,
-        system: true,
-        marketing: false
-      }
+    practitioner.emergencyMode = {
+      isActive: true,
+      activatedAt: new Date(),
+      reason: req.body.reason || 'Emergency mode activated'
     };
 
-    res.json(notificationPreferences);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+    await practitioner.save();
 
-// Update notification settings
-router.put('/notification-settings', async (req, res) => {
-  try {
-    const user = req.user;
-    const { email, push, sms, types } = req.body;
+    // Create system notification
+    const notification = new Notification({
+      userId: req.user._id,
+      title: 'Emergency Mode Activated',
+      message: 'Emergency mode has been activated for your practice',
+      type: 'system',
+      priority: 'high'
+    });
 
-    const notificationPreferences = {
-      email: email !== undefined ? email : user.notificationPreferences?.email || true,
-      push: push !== undefined ? push : user.notificationPreferences?.push || true,
-      sms: sms !== undefined ? sms : user.notificationPreferences?.sms || false,
-      types: {
-        ...user.notificationPreferences?.types,
-        ...types
-      }
-    };
+    await notification.save();
 
-    if (req.useMockDb) {
-      // Update in mock database
-      const users = await req.mockDb.find('users', { _id: user._id });
-      if (users.length > 0) {
-        users[0].notificationPreferences = notificationPreferences;
-        await req.mockDb.saveData('users.json', await req.mockDb.find('users'));
-      }
-    } else {
-      user.notificationPreferences = notificationPreferences;
-      await user.save();
-    }
-
-    res.json({ 
-      message: 'Notification settings updated successfully',
-      notificationPreferences 
+    res.json({
+      success: true,
+      message: 'Emergency mode activated successfully',
+      emergencyMode: practitioner.emergencyMode
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Emergency mode error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to activate emergency mode',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
-// Get notifications
-router.get('/notifications', async (req, res) => {
+// Generate reports
+router.post('/reports/generate', async (req, res) => {
   try {
-    const { page = 1, limit = 10, unread } = req.query;
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { type, period, dateRange } = req.body;
     
-    let notifications;
-    let total;
-
-    if (req.useMockDb) {
-      let allNotifications = await req.mockDb.find('notifications', { userId: req.user._id });
-      
-      if (unread === 'true') {
-        allNotifications = allNotifications.filter(n => !n.read);
-      }
-
-      total = allNotifications.length;
-      notifications = allNotifications
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice((page - 1) * limit, page * limit);
+    let startDate, endDate;
+    
+    if (dateRange) {
+      startDate = new Date(dateRange.start);
+      endDate = new Date(dateRange.end);
     } else {
-      let query = { userId: req.user._id };
-      if (unread === 'true') {
-        query.read = false;
+      const now = new Date();
+      switch (period) {
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = now;
+          break;
+        case 'quarter':
+          startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+          endDate = now;
+          break;
+        default:
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate = now;
       }
+    }
 
-      notifications = await Notification.find(query)
-        .sort({ createdAt: -1 })
-        .limit(limit * 1)
-        .skip((page - 1) * limit);
-
-      total = await Notification.countDocuments(query);
+    let reportData = {};
+    
+    switch (type) {
+      case 'appointments':
+        reportData = await Appointment.aggregate([
+          {
+            $match: {
+              practitionerId: practitioner._id,
+              createdAt: { $gte: startDate, $lte: endDate }
+            }
+          },
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+        break;
+      case 'revenue':
+        reportData = await Invoice.aggregate([
+          {
+            $match: {
+              practitionerId: practitioner._id,
+              createdAt: { $gte: startDate, $lte: endDate }
+            }
+          },
+          {
+            $group: {
+              _id: '$paymentStatus',
+              totalAmount: { $sum: '$totalAmount' },
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+        break;
+      case 'patients':
+        reportData = await Patient.aggregate([
+          {
+            $match: {
+              preferredPractitioner: practitioner._id,
+              createdAt: { $gte: startDate, $lte: endDate }
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { '_id': 1 } }
+        ]);
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid report type' });
     }
 
     res.json({
-      notifications,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
-      total,
-      unreadCount: req.useMockDb 
-        ? (await req.mockDb.find('notifications', { userId: req.user._id, read: false })).length
-        : await Notification.countDocuments({ userId: req.user._id, read: false })
+      success: true,
+      reportType: type,
+      period: { startDate, endDate },
+      data: reportData,
+      generatedAt: new Date()
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Mark notification as read
-router.put('/notifications/:id/read', async (req, res) => {
-  try {
-    let notification;
-
-    if (req.useMockDb) {
-      const notifications = await req.mockDb.find('notifications', { _id: req.params.id, userId: req.user._id });
-      notification = notifications[0];
-      
-      if (notification) {
-        notification.read = true;
-        await req.mockDb.saveData('notifications.json', await req.mockDb.find('notifications'));
-      }
-    } else {
-      notification = await Notification.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id },
-        { read: true },
-        { new: true }
-      );
-    }
-
-    if (!notification) {
-      return res.status(404).json({ message: 'Notification not found' });
-    }
-
-    res.json({ message: 'Notification marked as read', notification });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Generate report error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to generate report',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
