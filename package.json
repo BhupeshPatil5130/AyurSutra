@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test:api": "node test-api-connections.js",
-    "start:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
-    "server:dev": "cd server && npm start"
+    "test:full-stack": "node test-full-stack.js",
+    "start:full": "node start-full-stack.js",
+    "start:backend": "cd server && npm start",
+    "start:frontend": "vite"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",

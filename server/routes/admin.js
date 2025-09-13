@@ -17,6 +17,28 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize('admin'));
 
+// Get admin profile
+router.get('/profile', async (req, res) => {
+  try {
+    const user = req.user;
+    res.json({
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      fullName: user.fullName,
+      role: user.role,
+      isVerified: user.isVerified,
+      isActive: user.isActive,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get dashboard statistics
 router.get('/dashboard', async (req, res) => {
   try {
@@ -1572,6 +1594,292 @@ router.put('/notifications/:id/read', async (req, res) => {
       message: 'Failed to mark notification as read',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
+  }
+});
+
+// Get stats (enhanced dashboard stats)
+router.get('/stats', async (req, res) => {
+  try {
+    const { timeRange = '30d' } = req.query;
+    
+    let stats = {};
+
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.findAll('practitioners');
+      const patients = await req.mockDb.findAll('patients');
+      const appointments = await req.mockDb.findAll('appointments');
+      const users = await req.mockDb.findAll('users');
+
+      stats = {
+        totalUsers: users.length,
+        activeUsers: users.filter(u => u.isActive).length,
+        totalPractitioners: practitioners.length,
+        verifiedPractitioners: practitioners.filter(p => p.isVerified).length,
+        totalPatients: patients.length,
+        totalAppointments: appointments.length,
+        completedAppointments: appointments.filter(a => a.status === 'completed').length,
+        pendingAppointments: appointments.filter(a => a.status === 'scheduled').length,
+        revenue: 125000,
+        growth: 12.5
+      };
+    } else {
+      stats = { message: 'MongoDB stats not implemented in demo' };
+    }
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get recent activities
+router.get('/activities', async (req, res) => {
+  try {
+    let activities = [];
+
+    if (req.useMockDb) {
+      activities = [
+        {
+          id: 1,
+          type: 'user_registration',
+          message: 'New patient registered',
+          user: 'John Doe',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          severity: 'info'
+        },
+        {
+          id: 2,
+          type: 'practitioner_verification',
+          message: 'Practitioner verification completed',
+          user: 'Dr. Smith',
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+          severity: 'success'
+        }
+      ];
+    }
+
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get system health
+router.get('/system-health', async (req, res) => {
+  try {
+    const health = {
+      database: req.useMockDb ? 'healthy' : 'healthy',
+      server: 'healthy',
+      memory: '85%',
+      cpu: '45%',
+      uptime: '99.9%',
+      status: 'operational'
+    };
+
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get revenue data
+router.get('/revenue', async (req, res) => {
+  try {
+    const { timeRange = '30d' } = req.query;
+    
+    let revenueData = {};
+
+    if (req.useMockDb) {
+      revenueData = {
+        total: 125000,
+        growth: 12.5,
+        monthly: [
+          { month: 'Jan', amount: 15000 },
+          { month: 'Feb', amount: 18000 },
+          { month: 'Mar', amount: 22000 }
+        ]
+      };
+    }
+
+    res.json(revenueData);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get system settings
+router.get('/settings', async (req, res) => {
+  try {
+    const settings = {
+      siteName: 'AyurSutra',
+      maintenance: false,
+      registrationOpen: true,
+      emailNotifications: true,
+      maxAppointmentsPerDay: 10
+    };
+
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const { timeRange = '30d', tab = 'overview' } = req.query;
+    
+    let analytics = {};
+
+    if (req.useMockDb) {
+      analytics = {
+        totalUsers: 1250,
+        activeUsers: 890,
+        newUsers: 125,
+        userGrowth: 15.2
+      };
+    }
+
+    res.json(analytics);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notification settings
+router.get('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const notificationPreferences = user.notificationPreferences || {
+      email: true,
+      push: true,
+      sms: false,
+      types: {
+        appointment: true,
+        reminder: true,
+        billing: true,
+        system: true,
+        marketing: false
+      }
+    };
+
+    res.json(notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update notification settings
+router.put('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const { email, push, sms, types } = req.body;
+
+    const notificationPreferences = {
+      email: email !== undefined ? email : user.notificationPreferences?.email || true,
+      push: push !== undefined ? push : user.notificationPreferences?.push || true,
+      sms: sms !== undefined ? sms : user.notificationPreferences?.sms || false,
+      types: {
+        ...user.notificationPreferences?.types,
+        ...types
+      }
+    };
+
+    if (req.useMockDb) {
+      const users = await req.mockDb.find('users', { _id: user._id });
+      if (users.length > 0) {
+        users[0].notificationPreferences = notificationPreferences;
+        await req.mockDb.saveData('users.json', await req.mockDb.find('users'));
+      }
+    } else {
+      user.notificationPreferences = notificationPreferences;
+      await user.save();
+    }
+
+    res.json({ 
+      message: 'Notification settings updated successfully',
+      notificationPreferences 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, unread } = req.query;
+    
+    let notifications;
+    let total;
+
+    if (req.useMockDb) {
+      let allNotifications = await req.mockDb.find('notifications', { userId: req.user._id });
+      
+      if (unread === 'true') {
+        allNotifications = allNotifications.filter(n => !n.read);
+      }
+
+      total = allNotifications.length;
+      notifications = allNotifications
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit);
+    } else {
+      let query = { userId: req.user._id };
+      if (unread === 'true') {
+        query.read = false;
+      }
+
+      notifications = await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Notification.countDocuments(query);
+    }
+
+    res.json({
+      notifications,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total,
+      unreadCount: req.useMockDb 
+        ? (await req.mockDb.find('notifications', { userId: req.user._id, read: false })).length
+        : await Notification.countDocuments({ userId: req.user._id, read: false })
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', async (req, res) => {
+  try {
+    let notification;
+
+    if (req.useMockDb) {
+      const notifications = await req.mockDb.find('notifications', { _id: req.params.id, userId: req.user._id });
+      notification = notifications[0];
+      
+      if (notification) {
+        notification.read = true;
+        await req.mockDb.saveData('notifications.json', await req.mockDb.find('notifications'));
+      }
+    } else {
+      notification = await Notification.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { read: true },
+        { new: true }
+      );
+    }
+
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    res.json({ message: 'Notification marked as read', notification });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

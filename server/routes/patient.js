@@ -22,8 +22,25 @@ router.use(authorize('patient'));
 // Get patient profile
 router.get('/profile', async (req, res) => {
   try {
-    const patient = await Patient.findOne({ userId: req.user._id })
-      .populate('userId', 'firstName lastName email phone avatar');
+    let patient;
+    
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { userId: req.user._id });
+      patient = patients[0];
+      
+      if (patient) {
+        patient.userId = {
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          email: req.user.email,
+          phone: req.user.phone,
+          avatar: req.user.avatar
+        };
+      }
+    } else {
+      patient = await Patient.findOne({ userId: req.user._id })
+        .populate('userId', 'firstName lastName email phone avatar');
+    }
 
     if (!patient) {
       return res.status(404).json({ 
@@ -1032,6 +1049,143 @@ router.put('/notifications/:id/read', async (req, res) => {
       message: 'Failed to mark notification as read',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
+  }
+});
+
+// Get notification settings
+router.get('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const notificationPreferences = user.notificationPreferences || {
+      email: true,
+      push: true,
+      sms: false,
+      types: {
+        appointment: true,
+        reminder: true,
+        billing: true,
+        system: true,
+        marketing: false
+      }
+    };
+
+    res.json(notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update notification settings
+router.put('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const { email, push, sms, types } = req.body;
+
+    const notificationPreferences = {
+      email: email !== undefined ? email : user.notificationPreferences?.email || true,
+      push: push !== undefined ? push : user.notificationPreferences?.push || true,
+      sms: sms !== undefined ? sms : user.notificationPreferences?.sms || false,
+      types: {
+        ...user.notificationPreferences?.types,
+        ...types
+      }
+    };
+
+    if (req.useMockDb) {
+      const users = await req.mockDb.find('users', { _id: user._id });
+      if (users.length > 0) {
+        users[0].notificationPreferences = notificationPreferences;
+        await req.mockDb.saveData('users.json', await req.mockDb.find('users'));
+      }
+    } else {
+      user.notificationPreferences = notificationPreferences;
+      await user.save();
+    }
+
+    res.json({ 
+      message: 'Notification settings updated successfully',
+      notificationPreferences 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, unread } = req.query;
+    
+    let notifications;
+    let total;
+
+    if (req.useMockDb) {
+      let allNotifications = await req.mockDb.find('notifications', { userId: req.user._id });
+      
+      if (unread === 'true') {
+        allNotifications = allNotifications.filter(n => !n.read);
+      }
+
+      total = allNotifications.length;
+      notifications = allNotifications
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit);
+    } else {
+      let query = { userId: req.user._id };
+      if (unread === 'true') {
+        query.read = false;
+      }
+
+      notifications = await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Notification.countDocuments(query);
+    }
+
+    res.json({
+      notifications,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total,
+      unreadCount: req.useMockDb 
+        ? (await req.mockDb.find('notifications', { userId: req.user._id, read: false })).length
+        : await Notification.countDocuments({ userId: req.user._id, read: false })
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', async (req, res) => {
+  try {
+    let notification;
+
+    if (req.useMockDb) {
+      const notifications = await req.mockDb.find('notifications', { _id: req.params.id, userId: req.user._id });
+      notification = notifications[0];
+      
+      if (notification) {
+        notification.read = true;
+        await req.mockDb.saveData('notifications.json', await req.mockDb.find('notifications'));
+      }
+    } else {
+      notification = await Notification.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { read: true },
+        { new: true }
+      );
+    }
+
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    res.json({ message: 'Notification marked as read', notification });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

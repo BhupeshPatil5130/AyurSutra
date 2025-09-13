@@ -22,9 +22,27 @@ router.use(authorize('practitioner'));
 // Get practitioner profile
 router.get('/profile', async (req, res) => {
   try {
-    const practitioner = await Practitioner.findOne({ userId: req.user._id })
-      .populate('userId', 'firstName lastName email phone');
-
+    let practitioner;
+    
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { userId: req.user._id });
+      practitioner = practitioners[0];
+      
+      if (practitioner) {
+        // Add user details to practitioner
+        practitioner.userId = {
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          email: req.user.email,
+          phone: req.user.phone,
+          avatar: req.user.avatar
+        };
+      }
+    } else {
+      practitioner = await Practitioner.findOne({ userId: req.user._id })
+        .populate('userId', 'firstName lastName email phone avatar');
+    }
+    
     if (!practitioner) {
       return res.status(404).json({ message: 'Practitioner profile not found' });
     }
@@ -66,85 +84,219 @@ router.put('/profile', async (req, res) => {
 // Get dashboard statistics
 router.get('/dashboard', async (req, res) => {
   try {
-    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    let practitioner;
+    
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { userId: req.user._id });
+      practitioner = practitioners[0];
+    } else {
+      practitioner = await Practitioner.findOne({ userId: req.user._id });
+    }
     
     if (!practitioner) {
       return res.status(404).json({ message: 'Practitioner profile not found' });
     }
 
+    const { timeRange = '30d' } = req.query;
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    // Calculate date range for comparison
+    let dateFilter;
+    let previousDateFilter;
+    
+    switch (timeRange) {
+      case '7d':
+        dateFilter = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        previousDateFilter = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        previousDateFilter = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        dateFilter = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        previousDateFilter = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        previousDateFilter = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    }
 
-    const [totalPatients, todayAppointments, upcomingAppointments, activeTherapyPlans, totalReviews, pendingInvoices, monthlyRevenue, unreadMessages] = await Promise.all([
-      Patient.countDocuments({ preferredPractitioner: practitioner._id }),
-      Appointment.countDocuments({
-        practitionerId: practitioner._id,
-        appointmentDate: { $gte: startOfDay, $lte: endOfDay }
-      }),
-      Appointment.countDocuments({
-        practitionerId: practitioner._id,
-        appointmentDate: { $gt: endOfDay },
-        status: { $in: ['scheduled', 'confirmed'] }
-      }),
-      TherapyPlan.countDocuments({
-        practitionerId: practitioner._id,
-        status: 'active'
-      }),
-      Review.countDocuments({ practitionerId: practitioner._id }),
-      Invoice.countDocuments({
-        practitionerId: practitioner._id,
-        paymentStatus: 'pending'
-      }),
-      Invoice.aggregate([
-        {
-          $match: {
-            practitionerId: practitioner._id,
-            paymentStatus: 'paid',
-            createdAt: { $gte: startOfMonth }
+    let currentPatients, previousPatients, currentAppointments, previousAppointments;
+    let currentRevenue, previousRevenue, avgRating, totalReviews;
+    let patientSatisfaction = 85, successRate = 92, completionRate;
+
+    if (req.useMockDb) {
+      // Use mock database for calculations
+      const patients = await req.mockDb.find('patients', { preferredPractitioner: practitioner._id });
+      const appointments = await req.mockDb.find('appointments', { practitionerId: practitioner._id });
+      const invoices = await req.mockDb.find('invoices', { practitionerId: practitioner._id });
+      const reviews = await req.mockDb.find('reviews', { practitionerId: practitioner._id });
+
+      // Calculate patient counts
+      currentPatients = patients.filter(p => new Date(p.createdAt) >= dateFilter).length;
+      previousPatients = patients.filter(p => {
+        const date = new Date(p.createdAt);
+        return date >= previousDateFilter && date < dateFilter;
+      }).length;
+
+      // Calculate appointment counts
+      currentAppointments = appointments.filter(a => new Date(a.createdAt) >= dateFilter).length;
+      previousAppointments = appointments.filter(a => {
+        const date = new Date(a.createdAt);
+        return date >= previousDateFilter && date < dateFilter;
+      }).length;
+
+      // Calculate revenue
+      const currentPaidInvoices = invoices.filter(i => 
+        i.paymentStatus === 'paid' && new Date(i.createdAt) >= dateFilter
+      );
+      const previousPaidInvoices = invoices.filter(i => {
+        const date = new Date(i.createdAt);
+        return i.paymentStatus === 'paid' && date >= previousDateFilter && date < dateFilter;
+      });
+
+      currentRevenue = currentPaidInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+      previousRevenue = previousPaidInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+
+      // Calculate rating
+      avgRating = reviews.length > 0 
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+        : 0;
+      totalReviews = reviews.length;
+
+      // Calculate completion rate
+      const completedAppointments = appointments.filter(a => a.status === 'completed').length;
+      completionRate = appointments.length > 0 
+        ? Math.round((completedAppointments / appointments.length) * 100)
+        : 0;
+    } else {
+      // Use MongoDB for calculations
+      const [
+        currentPatientsCount, previousPatientsCount,
+        currentAppointmentsCount, previousAppointmentsCount,
+        currentRevenueData, previousRevenueData,
+        avgRatingData, totalReviewsCount,
+        completionRateData
+      ] = await Promise.all([
+        Patient.countDocuments({ 
+          preferredPractitioner: practitioner._id,
+          createdAt: { $gte: dateFilter }
+        }),
+        Patient.countDocuments({ 
+          preferredPractitioner: practitioner._id,
+          createdAt: { $gte: previousDateFilter, $lt: dateFilter }
+        }),
+        Appointment.countDocuments({
+          practitionerId: practitioner._id,
+          createdAt: { $gte: dateFilter }
+        }),
+        Appointment.countDocuments({
+          practitionerId: practitioner._id,
+          createdAt: { $gte: previousDateFilter, $lt: dateFilter }
+        }),
+        Invoice.aggregate([
+          {
+            $match: {
+              practitionerId: practitioner._id,
+              paymentStatus: 'paid',
+              createdAt: { $gte: dateFilter }
+            }
+          },
+          { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+        ]),
+        Invoice.aggregate([
+          {
+            $match: {
+              practitionerId: practitioner._id,
+              paymentStatus: 'paid',
+              createdAt: { $gte: previousDateFilter, $lt: dateFilter }
+            }
+          },
+          { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+        ]),
+        Review.aggregate([
+          { $match: { practitionerId: practitioner._id } },
+          { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+        ]),
+        Review.countDocuments({ practitionerId: practitioner._id }),
+        Appointment.aggregate([
+          { $match: { practitionerId: practitioner._id } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              completed: {
+                $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+              }
+            }
           }
-        },
-        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-      ]),
-      Message.countDocuments({
-        receiverId: req.user._id,
-        isRead: false
-      })
-    ]);
+        ])
+      ]);
 
-    // Get today's appointments with patient details
-    const todaysAppointmentsList = await Appointment.find({
-      practitionerId: practitioner._id,
-      appointmentDate: { $gte: startOfDay, $lte: endOfDay }
-    })
-    .populate({
-      path: 'patientId',
-      populate: { path: 'userId', select: 'firstName lastName' }
-    })
-    .sort({ startTime: 1 })
-    .limit(5);
+      currentPatients = currentPatientsCount;
+      previousPatients = previousPatientsCount;
+      currentAppointments = currentAppointmentsCount;
+      previousAppointments = previousAppointmentsCount;
+      currentRevenue = currentRevenueData[0]?.total || 0;
+      previousRevenue = previousRevenueData[0]?.total || 0;
+      avgRating = avgRatingData[0]?.avgRating || 0;
+      totalReviews = totalReviewsCount;
+      
+      const completionStats = completionRateData[0];
+      completionRate = completionStats 
+        ? Math.round((completionStats.completed / completionStats.total) * 100)
+        : 0;
+    }
 
-    // Get recent notifications
-    const recentNotifications = await Notification.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(5);
+    // Get recent reviews for dashboard
+    let recentReviews = [];
+    if (req.useMockDb) {
+      const reviews = await req.mockDb.find('reviews', { practitionerId: practitioner._id });
+      recentReviews = reviews
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3);
+    } else {
+      recentReviews = await Review.find({ practitionerId: practitioner._id })
+        .populate({
+          path: 'patientId',
+          populate: { path: 'userId', select: 'firstName lastName' }
+        })
+        .sort({ createdAt: -1 })
+        .limit(3);
+    }
+
+    const formattedReviews = recentReviews.map(review => ({
+      rating: review.rating,
+      comment: review.comment,
+      patientName: review.isAnonymous 
+        ? 'Anonymous Patient' 
+        : (req.useMockDb ? review.patientName : `${review.patientId?.userId?.firstName} ${review.patientId?.userId?.lastName}`)
+    }));
 
     res.json({
-      overview: {
-        verificationStatus: practitioner.verificationStatus,
-        totalPatients,
-        todayAppointments,
-        upcomingAppointments,
-        activeTherapyPlans,
-        totalReviews,
-        pendingInvoices,
-        monthlyRevenue: monthlyRevenue[0]?.total || 0,
-        unreadMessages,
-        rating: practitioner.rating
+      totalPatients: {
+        current: currentPatients,
+        previous: previousPatients
       },
-      todaysSchedule: todaysAppointmentsList,
-      recentNotifications
+      totalAppointments: {
+        current: currentAppointments,
+        previous: previousAppointments
+      },
+      totalRevenue: {
+        current: currentRevenue[0]?.total || 0,
+        previous: previousRevenue[0]?.total || 0
+      },
+      avgRating: {
+        current: avgRating[0]?.avgRating || 0
+      },
+      totalReviews,
+      patientSatisfaction,
+      successRate,
+      completionRate: calculatedCompletionRate,
+      recentReviews: formattedReviews
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -155,41 +307,86 @@ router.get('/dashboard', async (req, res) => {
 router.get('/appointments', async (req, res) => {
   try {
     const { status, date, page = 1, limit = 10 } = req.query;
-    const practitioner = await Practitioner.findOne({ userId: req.user._id });
-
+    
+    let practitioner;
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { userId: req.user._id });
+      practitioner = practitioners[0];
+    } else {
+      practitioner = await Practitioner.findOne({ userId: req.user._id });
+    }
+    
     if (!practitioner) {
       return res.status(404).json({ message: 'Practitioner profile not found' });
     }
 
-    let query = { practitionerId: practitioner._id };
-    
-    if (status) query.status = status;
-    if (date) {
-      const startDate = new Date(date);
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-      query.appointmentDate = { $gte: startDate, $lte: endDate };
-    }
+    let appointments;
+    let total;
 
-    const appointments = await Appointment.find(query)
-      .populate({
-        path: 'patientId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName email phone'
+    if (req.useMockDb) {
+      let allAppointments = await req.mockDb.find('appointments', { practitionerId: practitioner._id });
+      
+      // Apply filters
+      if (status) {
+        allAppointments = allAppointments.filter(apt => apt.status === status);
+      }
+      if (date) {
+        const targetDate = new Date(date).toDateString();
+        allAppointments = allAppointments.filter(apt => 
+          new Date(apt.date).toDateString() === targetDate
+        );
+      }
+
+      total = allAppointments.length;
+      
+      // Sort and paginate
+      appointments = allAppointments
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice((page - 1) * limit, page * limit);
+
+      // Add patient details
+      appointments = appointments.map(apt => ({
+        ...apt,
+        patientId: {
+          userId: {
+            firstName: apt.patientName?.split(' ')[0] || 'Unknown',
+            lastName: apt.patientName?.split(' ')[1] || 'Patient',
+            email: `patient${apt.patientId}@example.com`,
+            phone: '+91-9876543210'
+          }
         }
-      })
-      .populate('therapyPlanId')
-      .sort({ appointmentDate: 1, startTime: 1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      }));
+    } else {
+      let query = { practitionerId: practitioner._id };
+      
+      if (status) query.status = status;
+      if (date) {
+        const startDate = new Date(date);
+        const endDate = new Date(date);
+        endDate.setDate(endDate.getDate() + 1);
+        query.appointmentDate = { $gte: startDate, $lt: endDate };
+      }
 
-    const total = await Appointment.countDocuments(query);
+      appointments = await Appointment.find(query)
+        .populate({
+          path: 'patientId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email phone'
+          }
+        })
+        .populate('therapyPlanId')
+        .sort({ appointmentDate: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Appointment.countDocuments(query);
+    }
 
     res.json({
       appointments,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total
     });
   } catch (error) {
@@ -971,6 +1168,560 @@ router.put('/notifications/:id/read', async (req, res) => {
       message: 'Failed to mark notification as read',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
+  }
+});
+
+// Get patient details with stats
+router.get('/patients/:id', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const patient = await Patient.findOne({
+      _id: req.params.id,
+      preferredPractitioner: practitioner._id
+    })
+    .populate('userId', 'firstName lastName email phone')
+    .populate({
+      path: 'therapyPlans',
+      match: { practitionerId: practitioner._id }
+    })
+    .populate({
+      path: 'appointments',
+      match: { practitionerId: practitioner._id },
+      options: { sort: { appointmentDate: -1 }, limit: 10 }
+    })
+    .populate({
+      path: 'reviews',
+      match: { practitionerId: practitioner._id },
+      options: { sort: { createdAt: -1 }, limit: 5 }
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    res.json(patient);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get patient stats
+router.get('/patients/:id/stats', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const [activeTherapyPlans, completedTherapyPlans, totalAppointments, nextAppointment] = await Promise.all([
+      TherapyPlan.countDocuments({
+        patientId: req.params.id,
+        practitionerId: practitioner._id,
+        status: 'active'
+      }),
+      TherapyPlan.countDocuments({
+        patientId: req.params.id,
+        practitionerId: practitioner._id,
+        status: 'completed'
+      }),
+      Appointment.countDocuments({
+        patientId: req.params.id,
+        practitionerId: practitioner._id
+      }),
+      Appointment.findOne({
+        patientId: req.params.id,
+        practitionerId: practitioner._id,
+        appointmentDate: { $gt: new Date() },
+        status: { $in: ['scheduled', 'confirmed'] }
+      }).sort({ appointmentDate: 1 })
+    ]);
+
+    res.json({
+      activeTherapyPlans,
+      completedTherapyPlans,
+      totalAppointments,
+      nextAppointment: nextAppointment?.appointmentDate
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get single appointment details
+router.get('/appointments/:id', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    
+    const appointment = await Appointment.findOne({
+      _id: req.params.id,
+      practitionerId: practitioner._id
+    })
+    .populate({
+      path: 'patientId',
+      populate: {
+        path: 'userId',
+        select: 'firstName lastName email phone'
+      }
+    })
+    .populate('therapyPlanId');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    res.json(appointment);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update appointment status (PATCH method)
+router.patch('/appointments/:id/status', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const appointment = await Appointment.findOne({
+      _id: req.params.id,
+      practitionerId: practitioner._id
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    appointment.status = req.body.status;
+    await appointment.save();
+
+    // Create notification for patient if status changed
+    const notification = new Notification({
+      userId: appointment.patientId,
+      title: 'Appointment Status Updated',
+      message: `Your appointment status has been updated to: ${req.body.status}`,
+      type: 'appointment',
+      priority: 'medium',
+      relatedId: appointment._id,
+      relatedModel: 'Appointment'
+    });
+
+    await notification.save();
+    req.io?.to(appointment.patientId.toString()).emit('notification', notification);
+
+    res.json({ message: 'Appointment status updated successfully', appointment });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get reports
+router.get('/reports', async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { type = 'overview', period = 'month', startDate, endDate } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      };
+    } else {
+      switch (period) {
+        case 'week':
+          dateFilter.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+          break;
+        case 'month':
+          dateFilter.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+          break;
+        case 'quarter':
+          dateFilter.createdAt = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+          break;
+        case 'year':
+          dateFilter.createdAt = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+          break;
+      }
+    }
+
+    const baseQuery = { practitionerId: practitioner._id, ...dateFilter };
+    
+    let reportData = {};
+    
+    switch (type) {
+      case 'overview':
+        const [totalPatients, totalAppointments, totalRevenue, avgRating] = await Promise.all([
+          Patient.countDocuments({ preferredPractitioner: practitioner._id }),
+          Appointment.countDocuments(baseQuery),
+          Invoice.aggregate([
+            { $match: { ...baseQuery, paymentStatus: 'paid' } },
+            { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+          ]),
+          Review.aggregate([
+            { $match: { practitionerId: practitioner._id } },
+            { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+          ])
+        ]);
+        
+        reportData = {
+          totalPatients,
+          totalAppointments,
+          totalRevenue: totalRevenue[0]?.total || 0,
+          avgRating: avgRating[0]?.avgRating || 0
+        };
+        break;
+        
+      case 'patients':
+        const patientStats = await Patient.aggregate([
+          { $match: { preferredPractitioner: practitioner._id } },
+          {
+            $group: {
+              _id: '$gender',
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+        reportData = { patientDemographics: patientStats };
+        break;
+        
+      case 'revenue':
+        const revenueData = await Invoice.aggregate([
+          { $match: { ...baseQuery, paymentStatus: 'paid' } },
+          {
+            $group: {
+              _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+              amount: { $sum: '$totalAmount' },
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { '_id': 1 } }
+        ]);
+        reportData = { monthlyRevenue: revenueData };
+        break;
+        
+      default:
+        reportData = { message: 'Report type not implemented yet' };
+    }
+
+    res.json(reportData);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Generate report
+router.post('/reports/generate', async (req, res) => {
+  try {
+    const { type, period, dateRange, format } = req.body;
+    
+    // This would integrate with a PDF generation library
+    // For now, return a success message
+    res.json({ 
+      message: 'Report generation initiated',
+      type,
+      period,
+      format,
+      downloadUrl: `/api/practitioner/reports/download/${Date.now()}.${format}`
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Export data
+router.get('/reports/export', async (req, res) => {
+  try {
+    const { format, type, period } = req.query;
+    
+    // This would integrate with data export libraries
+    // For now, return a success message
+    res.json({ 
+      message: 'Data export initiated',
+      format,
+      type,
+      period,
+      downloadUrl: `/api/practitioner/reports/export/${Date.now()}.${format}`
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get reviews with stats
+router.get('/reviews', validateCommonParams, async (req, res) => {
+  try {
+    const practitioner = await Practitioner.findOne({ userId: req.user._id });
+    const { page = 1, limit = 10, rating, stats } = req.query;
+
+    if (stats === 'true') {
+      // Return stats for feedback management
+      const [totalReviews, avgRating, ratingDistribution, recentHighlights] = await Promise.all([
+        Review.countDocuments({ practitionerId: practitioner._id }),
+        Review.aggregate([
+          { $match: { practitionerId: practitioner._id } },
+          { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+        ]),
+        Review.aggregate([
+          { $match: { practitionerId: practitioner._id } },
+          {
+            $group: {
+              _id: '$rating',
+              count: { $sum: 1 }
+            }
+          }
+        ]),
+        Review.find({ practitionerId: practitioner._id, rating: { $gte: 4 } })
+          .populate({
+            path: 'patientId',
+            populate: { path: 'userId', select: 'firstName lastName' }
+          })
+          .sort({ createdAt: -1 })
+          .limit(3)
+      ]);
+
+      const distribution = {};
+      ratingDistribution.forEach(item => {
+        distribution[item._id] = item.count;
+      });
+
+      const highlights = recentHighlights.map(review => ({
+        rating: review.rating,
+        comment: review.comment,
+        patientName: review.isAnonymous 
+          ? 'Anonymous Patient' 
+          : `${review.patientId?.userId?.firstName} ${review.patientId?.userId?.lastName}`,
+        date: review.createdAt
+      }));
+
+      return res.json({
+        totalReviews,
+        averageRating: avgRating[0]?.avgRating || 0,
+        positiveReviews: ratingDistribution.filter(r => r._id >= 4).reduce((sum, r) => sum + r.count, 0),
+        monthlyReviews: await Review.countDocuments({
+          practitionerId: practitioner._id,
+          createdAt: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) }
+        }),
+        ratingDistribution: distribution,
+        recentHighlights: highlights
+      });
+    }
+
+    let query = { practitionerId: practitioner._id };
+    if (rating) query.rating = parseInt(rating);
+
+    const reviews = await Review.find(query)
+      .populate({
+        path: 'patientId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName'
+        }
+      })
+      .populate('appointmentId')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Review.countDocuments(query);
+
+    res.json({
+      reviews,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get reports
+router.get('/reports', async (req, res) => {
+  try {
+    let practitioner;
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { userId: req.user._id });
+      practitioner = practitioners[0];
+    } else {
+      practitioner = await Practitioner.findOne({ userId: req.user._id });
+    }
+    
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner profile not found' });
+    }
+
+    const { type = 'overview', period = 'month' } = req.query;
+    let reportData = {};
+    
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { preferredPractitioner: practitioner._id });
+      const appointments = await req.mockDb.find('appointments', { practitionerId: practitioner._id });
+      const invoices = await req.mockDb.find('invoices', { practitionerId: practitioner._id });
+      const reviews = await req.mockDb.find('reviews', { practitionerId: practitioner._id });
+
+      switch (type) {
+        case 'overview':
+          const totalRevenue = invoices
+            .filter(i => i.paymentStatus === 'paid')
+            .reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+          const avgRating = reviews.length > 0 
+            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+            : 0;
+
+          reportData = {
+            totalPatients: patients.length,
+            totalAppointments: appointments.length,
+            totalRevenue,
+            avgRating
+          };
+          break;
+          
+        default:
+          reportData = { message: 'Report type not implemented yet' };
+      }
+    } else {
+      reportData = { message: 'MongoDB reports not implemented in this demo' };
+    }
+
+    res.json(reportData);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notification settings
+router.get('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const notificationPreferences = user.notificationPreferences || {
+      email: true,
+      push: true,
+      sms: false,
+      types: {
+        appointment: true,
+        reminder: true,
+        billing: true,
+        system: true,
+        marketing: false
+      }
+    };
+
+    res.json(notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update notification settings
+router.put('/notification-settings', async (req, res) => {
+  try {
+    const user = req.user;
+    const { email, push, sms, types } = req.body;
+
+    const notificationPreferences = {
+      email: email !== undefined ? email : user.notificationPreferences?.email || true,
+      push: push !== undefined ? push : user.notificationPreferences?.push || true,
+      sms: sms !== undefined ? sms : user.notificationPreferences?.sms || false,
+      types: {
+        ...user.notificationPreferences?.types,
+        ...types
+      }
+    };
+
+    if (req.useMockDb) {
+      // Update in mock database
+      const users = await req.mockDb.find('users', { _id: user._id });
+      if (users.length > 0) {
+        users[0].notificationPreferences = notificationPreferences;
+        await req.mockDb.saveData('users.json', await req.mockDb.find('users'));
+      }
+    } else {
+      user.notificationPreferences = notificationPreferences;
+      await user.save();
+    }
+
+    res.json({ 
+      message: 'Notification settings updated successfully',
+      notificationPreferences 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, unread } = req.query;
+    
+    let notifications;
+    let total;
+
+    if (req.useMockDb) {
+      let allNotifications = await req.mockDb.find('notifications', { userId: req.user._id });
+      
+      if (unread === 'true') {
+        allNotifications = allNotifications.filter(n => !n.read);
+      }
+
+      total = allNotifications.length;
+      notifications = allNotifications
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit);
+    } else {
+      let query = { userId: req.user._id };
+      if (unread === 'true') {
+        query.read = false;
+      }
+
+      notifications = await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Notification.countDocuments(query);
+    }
+
+    res.json({
+      notifications,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total,
+      unreadCount: req.useMockDb 
+        ? (await req.mockDb.find('notifications', { userId: req.user._id, read: false })).length
+        : await Notification.countDocuments({ userId: req.user._id, read: false })
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', async (req, res) => {
+  try {
+    let notification;
+
+    if (req.useMockDb) {
+      const notifications = await req.mockDb.find('notifications', { _id: req.params.id, userId: req.user._id });
+      notification = notifications[0];
+      
+      if (notification) {
+        notification.read = true;
+        await req.mockDb.saveData('notifications.json', await req.mockDb.find('notifications'));
+      }
+    } else {
+      notification = await Notification.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { read: true },
+        { new: true }
+      );
+    }
+
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    res.json({ message: 'Notification marked as read', notification });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
