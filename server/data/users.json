@@ -85,5 +85,37 @@
     "phone": "+91-9876543214",
     "createdAt": "2025-09-13T18:03:25.911Z",
     "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "0fwfr14qjmfim3iy2",
+    "email": "john.doe@example.com",
+    "password": "$2a$12$2AlhKH7y0LWGiPEzqsTA8utucGAIgh5JSfng59BJW0ZugNCmhxDsS",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phone": "+1234567890",
+    "role": "patient",
+    "verificationToken": "c569d92d9c5932e46ffa22beefc70d67abe31f7c278c29b5a71649fd1c802d02",
+    "isVerified": true,
+    "isActive": true,
+    "fullName": "John Doe",
+    "name": "John Doe",
+    "createdAt": "2025-09-13T18:40:52.394Z",
+    "updatedAt": "2025-09-13T18:40:52.395Z"
+  },
+  {
+    "_id": "atjazyziemfim8fas",
+    "email": "bhupeshsabe123@gmail.com",
+    "password": "$2a$12$42PABFQU2yOz9UqmtrJZI.LzlumJpRkZyz/QD0cvyGhRdHJr8CBoG",
+    "firstName": "bhupesh",
+    "lastName": "bhupesh",
+    "phone": "9404307254",
+    "role": "patient",
+    "verificationToken": "0e8ef6ee27def1c3bdb16553e9129c39628c9ba49cb5fef417bff1b4d496f87d",
+    "isVerified": true,
+    "isActive": true,
+    "fullName": "bhupesh bhupesh",
+    "name": "bhupesh bhupesh",
+    "createdAt": "2025-09-13T18:44:40.948Z",
+    "updatedAt": "2025-09-13T18:44:40.948Z"
   }
 ]

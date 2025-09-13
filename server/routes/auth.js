@@ -21,12 +21,33 @@ const generateVerificationToken = () => {
 };
 
 // Register
-router.post('/register', validateUserRegistration, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName, phone, role, dateOfBirth, gender } = req.body;
+    let { email, password, name, firstName, lastName, phone, role, dateOfBirth, gender } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Handle name field - split if provided as single field
+    if (name && !firstName && !lastName) {
+      const nameParts = name.trim().split(' ');
+      firstName = nameParts[0];
+      lastName = nameParts.slice(1).join(' ') || nameParts[0];
+    }
+
+    // Validate required fields
+    if (!email || !password || !firstName || !phone || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: email, password, name, phone, and role are required'
+      });
+    }
+
+    // Check if user already exists (use mock DB if MongoDB is not available)
+    let existingUser;
+    if (req.useMockDb) {
+      existingUser = await req.mockDb.findUser({ email });
+    } else {
+      existingUser = await User.findOne({ email });
+    }
+
     if (existingUser) {
       return res.status(400).json({ 
         success: false,
@@ -37,33 +58,58 @@ router.post('/register', validateUserRegistration, async (req, res) => {
     // Generate verification token
     const verificationToken = generateVerificationToken();
 
-    // Create user
-    const user = new User({
+    // Prepare user data
+    const userData = {
       email,
       password,
       firstName,
-      lastName,
+      lastName: lastName || firstName,
       phone,
       role,
       verificationToken,
-      isVerified: process.env.NODE_ENV === 'development' // Auto-verify in development
-    });
+      isVerified: process.env.NODE_ENV === 'development', // Auto-verify in development
+      isActive: true,
+      fullName: `${firstName} ${lastName || firstName}`,
+      name: `${firstName} ${lastName || firstName}`
+    };
 
-    await user.save();
+    let user;
+    if (req.useMockDb) {
+      // Hash password for mock database
+      const salt = await bcrypt.genSalt(12);
+      userData.password = await bcrypt.hash(password, salt);
+      user = await req.mockDb.createUser(userData);
+    } else {
+      // Create user with MongoDB
+      user = new User(userData);
+      await user.save();
+    }
 
     // Create role-specific profile
     if (role === 'practitioner') {
-      const practitioner = new Practitioner({
+      const practitionerData = {
         userId: user._id,
         licenseNumber: req.body.licenseNumber || `TEMP${Date.now()}`,
-        experience: req.body.experience || 0,
-        consultationFee: req.body.consultationFee || 500,
-        specializations: req.body.specializations || ['General Ayurveda'],
-        availability: []
-      });
-      await practitioner.save();
+        experience: parseInt(req.body.experience) || 0,
+        consultationFee: parseFloat(req.body.consultationFee) || 500,
+        specializations: req.body.specialization ? [req.body.specialization] : ['General Ayurveda'],
+        availability: [],
+        bio: req.body.qualifications || 'Experienced Ayurvedic practitioner',
+        education: req.body.qualifications ? [req.body.qualifications] : ['BAMS'],
+        certifications: req.body.specialization ? [req.body.specialization] : ['Ayurvedic Medicine'],
+        rating: 4.5,
+        totalReviews: 0,
+        isVerified: false // Practitioners need manual verification
+      };
+
+      if (req.useMockDb) {
+        await req.mockDb.create('practitioners', practitionerData);
+      } else {
+        const practitioner = new Practitioner(practitionerData);
+        await practitioner.save();
+      }
     } else if (role === 'patient') {
-      const patient = new Patient({
+      const patientData = {
         userId: user._id,
         dateOfBirth: dateOfBirth || new Date('1990-01-01'),
         gender: gender || 'other',
@@ -71,9 +117,24 @@ router.post('/register', validateUserRegistration, async (req, res) => {
           name: req.body.emergencyContactName || 'Emergency Contact',
           relationship: req.body.emergencyContactRelation || 'Family',
           phone: req.body.emergencyContactPhone || phone
+        },
+        medicalHistory: [],
+        allergies: [],
+        currentMedications: [],
+        lifestyle: {
+          diet: 'Vegetarian',
+          exercise: 'Moderate',
+          smoking: false,
+          alcohol: 'Never'
         }
-      });
-      await patient.save();
+      };
+
+      if (req.useMockDb) {
+        await req.mockDb.create('patients', patientData);
+      } else {
+        const patient = new Patient(patientData);
+        await patient.save();
+      }
     }
 
     const token = generateToken(user._id);
@@ -87,7 +148,7 @@ router.post('/register', validateUserRegistration, async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        fullName: user.fullName,
+        fullName: user.fullName || user.name,
         role: user.role,
         isVerified: user.isVerified
       }
