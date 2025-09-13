@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:api": "node test-api-connections.js",
+    "start:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
+    "server:dev": "cd server && npm start"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
@@ -19,7 +22,9 @@
     "react-hot-toast": "^2.4.1",
     "lucide-react": "^0.400.0",
     "date-fns": "^2.30.0",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "chalk": "^5.3.0",
+    "concurrently": "^8.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

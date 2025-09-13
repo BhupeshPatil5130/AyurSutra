@@ -71,6 +71,18 @@ class MockDatabase {
           isVerified: true,
           isActive: true,
           phone: '+91-9876543210',
+          notificationPreferences: {
+            email: true,
+            push: true,
+            sms: false,
+            types: {
+              appointment: true,
+              reminder: true,
+              billing: true,
+              system: true,
+              marketing: false
+            }
+          },
           createdAt: now,
           updatedAt: now
         },
@@ -90,6 +102,18 @@ class MockDatabase {
           location: 'Mumbai',
           consultationFee: 1500,
           phone: '+91-9876543211',
+          notificationPreferences: {
+            email: true,
+            push: true,
+            sms: false,
+            types: {
+              appointment: true,
+              reminder: true,
+              billing: true,
+              system: true,
+              marketing: false
+            }
+          },
           createdAt: now,
           updatedAt: now
         },
@@ -107,6 +131,18 @@ class MockDatabase {
           age: 35,
           gender: 'male',
           phone: '+91-9876543212',
+          notificationPreferences: {
+            email: true,
+            push: true,
+            sms: false,
+            types: {
+              appointment: true,
+              reminder: true,
+              billing: true,
+              system: true,
+              marketing: false
+            }
+          },
           createdAt: now,
           updatedAt: now
         },
@@ -126,6 +162,18 @@ class MockDatabase {
           location: 'Delhi',
           consultationFee: 1200,
           phone: '+91-9876543213',
+          notificationPreferences: {
+            email: true,
+            push: true,
+            sms: false,
+            types: {
+              appointment: true,
+              reminder: true,
+              billing: true,
+              system: true,
+              marketing: false
+            }
+          },
           createdAt: now,
           updatedAt: now
         },
@@ -143,6 +191,18 @@ class MockDatabase {
           age: 42,
           gender: 'female',
           phone: '+91-9876543214',
+          notificationPreferences: {
+            email: true,
+            push: true,
+            sms: false,
+            types: {
+              appointment: true,
+              reminder: true,
+              billing: true,
+              system: true,
+              marketing: false
+            }
+          },
           createdAt: now,
           updatedAt: now
         }
@@ -579,6 +639,44 @@ class MockDatabase {
 
   generateId() {
     return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+  }
+
+  // Add findAll method for compatibility with admin routes
+  findAll(collection) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const data = this[collection] || [];
+        resolve(data);
+      }, 10);
+    });
+  }
+
+  // Add countDocuments method for compatibility
+  countDocuments(collection, query = {}) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const data = this[collection] || [];
+        if (Object.keys(query).length === 0) {
+          resolve(data.length);
+        } else {
+          const filtered = data.filter(item => {
+            return Object.keys(query).every(key => {
+              if (key.includes('.')) {
+                // Handle nested properties like 'verificationStatus'
+                const keys = key.split('.');
+                let value = item;
+                for (const k of keys) {
+                  value = value?.[k];
+                }
+                return value === query[key];
+              }
+              return item[key] === query[key];
+            });
+          });
+          resolve(filtered.length);
+        }
+      }, 10);
+    });
   }
 
   // Health check

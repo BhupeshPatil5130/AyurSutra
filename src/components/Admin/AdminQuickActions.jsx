@@ -33,7 +33,7 @@ const AdminQuickActions = ({ onNavigate }) => {
 
   const fetchQuickStats = async () => {
     try {
-      const response = await api.get('/admin/dashboard/quick-stats');
+      const response = await api.get('/admin/dashboard');
       setQuickStats(response.data);
     } catch (error) {
       console.error('Error fetching quick stats:', error);

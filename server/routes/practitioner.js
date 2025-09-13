@@ -11,6 +11,7 @@ import MedicalRecord from '../models/MedicalRecord.js';
 import Invoice from '../models/Invoice.js';
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -821,6 +822,155 @@ router.get('/analytics', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get notification settings
+router.get('/notification-settings', async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('notificationPreferences');
+    
+    res.json({
+      success: true,
+      preferences: user.notificationPreferences || {
+        email: true,
+        push: true,
+        sms: false,
+        types: {
+          appointment: true,
+          reminder: true,
+          billing: true,
+          system: true,
+          marketing: false
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get notification settings error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get notification settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Update notification settings
+router.put('/notification-settings', async (req, res) => {
+  try {
+    const { email, push, sms, types } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+
+    user.notificationPreferences = {
+      email: email !== undefined ? email : user.notificationPreferences?.email || true,
+      push: push !== undefined ? push : user.notificationPreferences?.push || true,
+      sms: sms !== undefined ? sms : user.notificationPreferences?.sms || false,
+      types: {
+        ...user.notificationPreferences?.types,
+        ...types
+      }
+    };
+
+    await user.save();
+
+    res.json({ 
+      success: true,
+      message: 'Notification preferences updated successfully',
+      preferences: user.notificationPreferences
+    });
+  } catch (error) {
+    console.error('Update notification settings error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update notification settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, isRead, type, priority } = req.query;
+    
+    let query = { userId: req.user._id };
+    if (isRead !== undefined) {
+      query.isRead = isRead === 'true';
+    }
+    if (type) {
+      query.type = type;
+    }
+    if (priority) {
+      query.priority = priority;
+    }
+
+    const notifications = await Notification.find(query)
+      .populate('relatedId')
+      .populate('createdBy', 'firstName lastName role')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Notification.countDocuments(query);
+    const unreadCount = await Notification.countDocuments({ 
+      userId: req.user._id, 
+      isRead: false 
+    });
+
+    res.json({
+      success: true,
+      notifications,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total,
+      unreadCount
+    });
+  } catch (error) {
+    console.error('Get notifications error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get notifications',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', async (req, res) => {
+  try {
+    const notification = await Notification.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!notification) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Notification not found' 
+      });
+    }
+
+    notification.isRead = true;
+    await notification.save();
+
+    res.json({ 
+      success: true,
+      message: 'Notification marked as read' 
+    });
+  } catch (error) {
+    console.error('Mark notification read error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark notification as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 

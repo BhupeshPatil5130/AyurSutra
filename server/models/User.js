@@ -59,13 +59,20 @@ const userSchema = new mongoose.Schema({
   },
   lockUntil: Date,
   preferences: {
-    notifications: {
-      email: { type: Boolean, default: true },
-      sms: { type: Boolean, default: false },
-      push: { type: Boolean, default: true }
-    },
     language: { type: String, default: 'en' },
     timezone: { type: String, default: 'UTC' }
+  },
+  notificationPreferences: {
+    email: { type: Boolean, default: true },
+    push: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    types: {
+      appointment: { type: Boolean, default: true },
+      reminder: { type: Boolean, default: true },
+      billing: { type: Boolean, default: true },
+      system: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: false }
+    }
   }
 }, {
   timestamps: true,

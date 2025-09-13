@@ -41,10 +41,10 @@ const EnhancedAdminDashboard = () => {
     try {
       setRefreshing(true);
       const [statsRes, activitiesRes, healthRes, revenueRes] = await Promise.all([
-        api.get(`/admin/dashboard/stats?timeRange=${timeRange}`),
-        api.get('/admin/dashboard/activities'),
-        api.get('/admin/dashboard/system-health'),
-        api.get(`/admin/dashboard/revenue?timeRange=${timeRange}`)
+        api.get(`/admin/stats?timeRange=${timeRange}`),
+        api.get('/admin/activities'),
+        api.get('/admin/system-health'),
+        api.get(`/admin/revenue?timeRange=${timeRange}`)
       ]);
 
       setStats(statsRes.data);

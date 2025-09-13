@@ -45,10 +45,10 @@ const EnhancedPractitionerDashboard = () => {
     try {
       setLoading(true);
       const [dashboardRes, appointmentsRes, patientsRes, notificationsRes] = await Promise.all([
-        api.get(`/practitioner/dashboard/stats?timeRange=${timeRange}`),
-        api.get('/practitioner/appointments/today'),
-        api.get('/practitioner/patients/recent'),
-        api.get('/practitioner/notifications/unread')
+        api.get(`/practitioner/dashboard?timeRange=${timeRange}`),
+        api.get('/practitioner/appointments?date=today'),
+        api.get('/practitioner/patients?recent=true'),
+        api.get('/practitioner/notifications?status=unread')
       ]);
 
       setDashboardData(dashboardRes.data);

@@ -102,5 +102,27 @@
     },
     "createdAt": "2025-09-13T18:44:40.948Z",
     "updatedAt": "2025-09-13T18:44:40.948Z"
+  },
+  {
+    "_id": "a7fugm2elmfinxetb",
+    "userId": "jjzy0s4edmfinxet9",
+    "dateOfBirth": "2006-02-01",
+    "gender": "male",
+    "emergencyContact": {
+      "name": "Emergency Contact",
+      "relationship": "Family",
+      "phone": "95404307145"
+    },
+    "medicalHistory": [],
+    "allergies": [],
+    "currentMedications": [],
+    "lifestyle": {
+      "diet": "Vegetarian",
+      "exercise": "Moderate",
+      "smoking": false,
+      "alcohol": "Never"
+    },
+    "createdAt": "2025-09-13T19:32:06.335Z",
+    "updatedAt": "2025-09-13T19:32:06.335Z"
   }
 ]

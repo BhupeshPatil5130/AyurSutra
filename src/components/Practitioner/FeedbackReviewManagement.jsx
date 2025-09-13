@@ -42,7 +42,7 @@ const FeedbackReviewManagement = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/practitioner/reviews/stats');
+      const response = await api.get('/practitioner/reviews?stats=true');
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);

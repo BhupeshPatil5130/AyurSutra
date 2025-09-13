@@ -36,7 +36,7 @@ const PractitionerQuickActions = ({ onNavigate }) => {
 
   const fetchQuickStats = async () => {
     try {
-      const response = await api.get('/practitioner/dashboard/quick-stats');
+      const response = await api.get('/practitioner/dashboard');
       setQuickStats(response.data);
     } catch (error) {
       console.error('Error fetching quick stats:', error);
@@ -47,7 +47,7 @@ const PractitionerQuickActions = ({ onNavigate }) => {
 
   const fetchTodaySchedule = async () => {
     try {
-      const response = await api.get('/practitioner/appointments/today');
+      const response = await api.get('/practitioner/appointments?date=today');
       setTodaySchedule(response.data.slice(0, 3)); // Show only first 3
     } catch (error) {
       console.error('Error fetching today schedule:', error);

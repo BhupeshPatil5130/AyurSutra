@@ -57,7 +57,7 @@ A comprehensive MERN stack web application for managing Panchakarma therapy prac
 
 ### Prerequisites
 - Node.js (v16 or higher)
-- MongoDB (local or cloud)
+- MongoDB (local or cloud) - Optional, uses mock database in development
 - npm or yarn
 
 ### Installation
@@ -65,7 +65,7 @@ A comprehensive MERN stack web application for managing Panchakarma therapy prac
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd hackathon
+cd AyurSutra
 ```
 
 2. **Install Backend Dependencies**
@@ -77,30 +77,34 @@ npm install
 3. **Install Frontend Dependencies**
 ```bash
 cd ..
-npm install --legacy-peer-deps
+npm install
 ```
 
-4. **Environment Setup**
-Create a `.env` file in the `server` directory:
+4. **Environment Setup (Optional)**
+Create a `.env` file in the `server` directory for production:
 ```env
-MONGODB_URI=mongodb://localhost:27017/panchakarma
-JWT_SECRET=panchakarma_jwt_secret_key_2024
-PORT=5000
-NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/ayursutra
+JWT_SECRET=ayursutra_jwt_secret_key_2024
+PORT=8001
+NODE_ENV=production
+FRONTEND_URL=http://localhost:5173
 ```
 
-5. **Seed Demo Data**
+**Note:** The application works out-of-the-box with a mock database in development mode. No MongoDB setup required for testing.
+
+5. **Start the Application**
+
+**Option 1: Start both frontend and backend together**
 ```bash
-cd server
-npm run seed
+npm run start:full
 ```
 
-6. **Start the Application**
+**Option 2: Start separately**
 
 Backend (Terminal 1):
 ```bash
 cd server
-npm run dev
+npm start
 ```
 
 Frontend (Terminal 2):
@@ -108,19 +112,31 @@ Frontend (Terminal 2):
 npm run dev
 ```
 
+6. **Test API Connections**
+```bash
+npm run test:api
+```
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8001/api
+
 ## Demo Accounts
 
 ### Admin
 - **Email:** admin@panchakarma.com
 - **Password:** demo123
+- **Demo Login:** Use `/api/auth/demo-login/admin` endpoint
 
 ### Practitioner
 - **Email:** practitioner@panchakarma.com
 - **Password:** demo123
+- **Demo Login:** Use `/api/auth/demo-login/practitioner` endpoint
 
 ### Patient
 - **Email:** patient@panchakarma.com
 - **Password:** demo123
+- **Demo Login:** Use `/api/auth/demo-login/patient` endpoint
 
 ## API Endpoints
 
@@ -133,18 +149,30 @@ npm run dev
 - `GET /api/admin/dashboard` - Dashboard statistics
 - `GET /api/admin/practitioners/pending` - Pending verifications
 - `POST /api/admin/practitioners/:id/verify` - Verify practitioner
+- `GET /api/admin/notification-settings` - Get notification preferences
+- `PUT /api/admin/notification-settings` - Update notification preferences
+- `GET /api/admin/notifications` - Get admin notifications
+- `PUT /api/admin/notifications/:id/read` - Mark notification as read
 
 ### Practitioner Routes
 - `GET /api/practitioner/dashboard` - Dashboard statistics
 - `GET /api/practitioner/appointments` - View appointments
 - `POST /api/practitioner/therapy-plans` - Create therapy plan
+- `GET /api/practitioner/notification-settings` - Get notification preferences
+- `PUT /api/practitioner/notification-settings` - Update notification preferences
+- `GET /api/practitioner/notifications` - Get practitioner notifications
+- `PUT /api/practitioner/notifications/:id/read` - Mark notification as read
 
 ### Patient Routes
 - `GET /api/patient/dashboard` - Dashboard statistics
 - `POST /api/patient/appointments` - Book appointment
 - `POST /api/patient/reviews` - Submit review
+- `GET /api/patient/notification-settings` - Get notification preferences
+- `PUT /api/patient/notification-settings` - Update notification preferences
+- `GET /api/patient/notifications` - Get patient notifications
+- `PUT /api/patient/notifications/:id/read` - Mark notification as read
 
-### Notifications
+### Global Notifications (Legacy)
 - `GET /api/notifications` - Get user notifications
 - `PUT /api/notifications/:id/read` - Mark as read
 

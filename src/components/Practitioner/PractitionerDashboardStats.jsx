@@ -35,7 +35,7 @@ const PractitionerDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/practitioner/dashboard/stats');
+      const response = await api.get('/practitioner/dashboard');
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
