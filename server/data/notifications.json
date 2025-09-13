@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "not001",
+    "userId": "507f1f77bcf86cd799439013",
+    "title": "Appointment Reminder",
+    "message": "Your appointment with Dr. Rajesh Sharma is tomorrow at 10:00 AM",
+    "type": "appointment",
+    "priority": "high",
+    "read": false,
+    "createdAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "not002",
+    "userId": "507f1f77bcf86cd799439012",
+    "title": "New Patient Registration",
+    "message": "A new patient has registered and is requesting consultation",
+    "type": "patient",
+    "priority": "medium",
+    "read": false,
+    "createdAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "not003",
+    "userId": "507f1f77bcf86cd799439015",
+    "title": "Therapy Plan Updated",
+    "message": "Your therapy plan has been updated with new sessions",
+    "type": "therapy",
+    "priority": "medium",
+    "read": true,
+    "createdAt": "2025-09-12T18:03:25.912Z"
+  }
+]

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{invoiceNumber}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2c5530;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .invoice-title {
+            color: #2c5530;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .invoice-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #2c5530;
+        }
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5530;
+            text-align: center;
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .pay-button {
+            display: inline-block;
+            background-color: #2c5530;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌿 Panchakarma Platform</div>
+            <h1 class="invoice-title">💳 Invoice {{invoiceNumber}}</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{patientName}},</p>
+            
+            <p>You have received a new invoice from Dr. {{practitionerName}}. Please find the details below:</p>
+            
+            <div class="invoice-details">
+                <div class="detail-row">
+                    <span class="detail-label">Invoice Number:</span>
+                    <span class="detail-value">{{invoiceNumber}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Invoice Date:</span>
+                    <span class="detail-value">{{invoiceDate}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Due Date:</span>
+                    <span class="detail-value">{{dueDate}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Practitioner:</span>
+                    <span class="detail-value">Dr. {{practitionerName}}</span>
+                </div>
+            </div>
+            
+            <div class="total-amount">
+                Total Amount: ₹{{totalAmount}}
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{paymentUrl}}" class="pay-button">Pay Now</a>
+            </div>
+            
+            <p><strong>Payment Methods:</strong> We accept all major credit cards, debit cards, UPI, and net banking.</p>
+            
+            <p><strong>Payment Terms:</strong> Payment is due within 7 days of the invoice date. Late payments may incur additional charges.</p>
+            
+            <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
+            
+            <p>Thank you for choosing Panchakarma Platform for your wellness needs.</p>
+            
+            <p>Best regards,<br>
+            <strong>The Panchakarma Platform Team</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>Questions about this invoice? Contact us at billing@panchakarma.com</p>
+            <p>© 2024 Panchakarma Platform. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

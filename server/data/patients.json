@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "pat001",
+    "userId": "507f1f77bcf86cd799439013",
+    "dateOfBirth": "1988-05-15",
+    "gender": "male",
+    "bloodGroup": "O+",
+    "height": 175,
+    "weight": 70,
+    "emergencyContact": {
+      "name": "Priya Patel",
+      "relationship": "Wife",
+      "phone": "+91-9876543220"
+    },
+    "medicalHistory": [
+      "Hypertension",
+      "Stress"
+    ],
+    "allergies": [
+      "Peanuts"
+    ],
+    "currentMedications": [],
+    "lifestyle": {
+      "diet": "Vegetarian",
+      "exercise": "Moderate",
+      "smoking": false,
+      "alcohol": "Occasional"
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "pat002",
+    "userId": "507f1f77bcf86cd799439015",
+    "dateOfBirth": "1981-08-22",
+    "gender": "female",
+    "bloodGroup": "A+",
+    "height": 160,
+    "weight": 65,
+    "emergencyContact": {
+      "name": "Rajesh Gupta",
+      "relationship": "Husband",
+      "phone": "+91-9876543221"
+    },
+    "medicalHistory": [
+      "Digestive Issues",
+      "Migraine"
+    ],
+    "allergies": [],
+    "currentMedications": [
+      "Ayurvedic digestive tablets"
+    ],
+    "lifestyle": {
+      "diet": "Vegetarian",
+      "exercise": "Light",
+      "smoking": false,
+      "alcohol": "Never"
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "_id": "inv001",
+    "patientId": "507f1f77bcf86cd799439013",
+    "practitionerId": "507f1f77bcf86cd799439012",
+    "appointmentId": "apt003",
+    "invoiceNumber": "INV-2024-001",
+    "date": "2025-09-06T18:03:25.913Z",
+    "dueDate": "2025-09-20T18:03:25.913Z",
+    "items": [
+      {
+        "description": "Consultation Fee",
+        "quantity": 1,
+        "rate": 1500,
+        "amount": 1500
+      }
+    ],
+    "subtotal": 1500,
+    "tax": 270,
+    "total": 1770,
+    "status": "paid",
+    "paymentDate": "2025-09-08T18:03:25.913Z",
+    "paymentMethod": "UPI",
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  }
+]

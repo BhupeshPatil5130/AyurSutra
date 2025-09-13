@@ -1,0 +1,159 @@
+[
+  {
+    "_id": "prac001",
+    "userId": "507f1f77bcf86cd799439012",
+    "licenseNumber": "AYU12345",
+    "specializations": [
+      "Panchakarma",
+      "Stress Management",
+      "Detoxification"
+    ],
+    "experience": 10,
+    "consultationFee": 1500,
+    "location": "Mumbai",
+    "bio": "Experienced Ayurvedic practitioner specializing in Panchakarma therapies",
+    "education": [
+      "BAMS - Mumbai University",
+      "MD Ayurveda - Gujarat Ayurved University"
+    ],
+    "certifications": [
+      "Panchakarma Specialist",
+      "Ayurvedic Medicine"
+    ],
+    "availability": [
+      {
+        "day": "Monday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Tuesday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Wednesday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Thursday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Friday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      }
+    ],
+    "rating": 4.8,
+    "totalReviews": 156,
+    "isVerified": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "prac002",
+    "userId": "507f1f77bcf86cd799439014",
+    "licenseNumber": "AYU67890",
+    "specializations": [
+      "Ayurvedic Medicine",
+      "Women Health",
+      "Digestive Disorders"
+    ],
+    "experience": 8,
+    "consultationFee": 1200,
+    "location": "Delhi",
+    "bio": "Dedicated to womens health and digestive wellness through Ayurveda",
+    "education": [
+      "BAMS - Delhi University",
+      "PG Diploma in Ayurvedic Medicine"
+    ],
+    "certifications": [
+      "Ayurvedic Medicine",
+      "Womens Health Specialist"
+    ],
+    "availability": [
+      {
+        "day": "Monday",
+        "slots": [
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00",
+          "16:00"
+        ]
+      },
+      {
+        "day": "Tuesday",
+        "slots": [
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00",
+          "16:00"
+        ]
+      },
+      {
+        "day": "Wednesday",
+        "slots": [
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00",
+          "16:00"
+        ]
+      },
+      {
+        "day": "Thursday",
+        "slots": [
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00",
+          "16:00"
+        ]
+      },
+      {
+        "day": "Saturday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00"
+        ]
+      }
+    ],
+    "rating": 4.6,
+    "totalReviews": 89,
+    "isVerified": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  }
+]

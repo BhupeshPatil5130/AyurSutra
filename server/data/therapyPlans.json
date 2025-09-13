@@ -1,0 +1,56 @@
+[
+  {
+    "_id": "tp001",
+    "patientId": "507f1f77bcf86cd799439013",
+    "practitionerId": "507f1f77bcf86cd799439012",
+    "title": "Stress Management & Detox Program",
+    "description": "Comprehensive 21-day Panchakarma program for stress relief and detoxification",
+    "duration": 21,
+    "startDate": "2025-09-13T18:03:25.911Z",
+    "status": "active",
+    "sessions": [
+      {
+        "day": 1,
+        "therapy": "Abhyanga",
+        "duration": 60,
+        "notes": "Full body oil massage with warm sesame oil",
+        "completed": true
+      },
+      {
+        "day": 2,
+        "therapy": "Shirodhara",
+        "duration": 45,
+        "notes": "Continuous oil pouring on forehead for mental relaxation",
+        "completed": false
+      },
+      {
+        "day": 3,
+        "therapy": "Udvartana",
+        "duration": 60,
+        "notes": "Herbal powder massage for weight management",
+        "completed": false
+      }
+    ],
+    "dietPlan": {
+      "breakfast": "Warm lemon water, oats with fruits",
+      "lunch": "Rice, dal, vegetables, buttermilk",
+      "dinner": "Light khichdi with ghee",
+      "restrictions": [
+        "No spicy food",
+        "No cold drinks",
+        "No processed food"
+      ]
+    },
+    "medications": [
+      {
+        "name": "Triphala Churna",
+        "dosage": "1 tsp with warm water",
+        "timing": "Before bed",
+        "duration": "21 days"
+      }
+    ],
+    "progress": 15,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "rev001",
+    "patientId": "507f1f77bcf86cd799439013",
+    "practitionerId": "507f1f77bcf86cd799439012",
+    "appointmentId": "apt003",
+    "rating": 5,
+    "comment": "Excellent treatment! Dr. Sharma is very knowledgeable and the therapy was very effective.",
+    "createdAt": "2025-09-08T18:03:25.912Z"
+  },
+  {
+    "_id": "rev002",
+    "patientId": "507f1f77bcf86cd799439015",
+    "practitionerId": "507f1f77bcf86cd799439014",
+    "rating": 4,
+    "comment": "Dr. Priya is very caring and her treatment approach is holistic. Highly recommended!",
+    "createdAt": "2025-09-03T18:03:25.913Z"
+  }
+]

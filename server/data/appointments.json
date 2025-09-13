@@ -1,0 +1,50 @@
+[
+  {
+    "_id": "apt001",
+    "patientId": "507f1f77bcf86cd799439013",
+    "practitionerId": "507f1f77bcf86cd799439012",
+    "patientName": "Amit Patel",
+    "practitionerName": "Dr. Rajesh Sharma",
+    "date": "2025-09-14T18:03:25.912Z",
+    "time": "10:00",
+    "duration": 60,
+    "type": "consultation",
+    "status": "confirmed",
+    "notes": "Initial consultation for stress management",
+    "fee": 1500,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "apt002",
+    "patientId": "507f1f77bcf86cd799439015",
+    "practitionerId": "507f1f77bcf86cd799439014",
+    "patientName": "Sunita Gupta",
+    "practitionerName": "Dr. Priya Mehta",
+    "date": "2025-09-15T18:03:25.912Z",
+    "time": "14:30",
+    "duration": 45,
+    "type": "follow-up",
+    "status": "confirmed",
+    "notes": "Follow-up for digestive issues treatment",
+    "fee": 1200,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "apt003",
+    "patientId": "507f1f77bcf86cd799439013",
+    "practitionerId": "507f1f77bcf86cd799439012",
+    "patientName": "Amit Patel",
+    "practitionerName": "Dr. Rajesh Sharma",
+    "date": "2025-09-06T18:03:25.912Z",
+    "time": "11:00",
+    "duration": 60,
+    "type": "therapy",
+    "status": "completed",
+    "notes": "Abhyanga massage therapy session",
+    "fee": 1500,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  }
+]
