@@ -52,9 +52,9 @@ const EnhancedPractitionerDashboard = () => {
       ]);
 
       setDashboardData(dashboardRes.data);
-      setTodayAppointments(appointmentsRes.data);
-      setRecentPatients(patientsRes.data);
-      setNotifications(notificationsRes.data);
+      setTodayAppointments(Array.isArray(appointmentsRes.data) ? appointmentsRes.data : appointmentsRes.data?.appointments || []);
+      setRecentPatients(Array.isArray(patientsRes.data) ? patientsRes.data : []);
+      setNotifications(Array.isArray(notificationsRes.data) ? notificationsRes.data : notificationsRes.data?.notifications || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Error loading dashboard data');
@@ -278,7 +278,7 @@ const EnhancedPractitionerDashboard = () => {
             </div>
           </div>
           <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-            {todayAppointments.length > 0 ? (
+            {(Array.isArray(todayAppointments) && todayAppointments.length > 0) ? (
               todayAppointments.map((appointment) => (
                 <div key={appointment._id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
@@ -336,7 +336,7 @@ const EnhancedPractitionerDashboard = () => {
             </div>
           </div>
           <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-            {recentPatients.length > 0 ? (
+            {(Array.isArray(recentPatients) && recentPatients.length > 0) ? (
               recentPatients.map((patient) => (
                 <div key={patient._id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
@@ -428,20 +428,22 @@ const EnhancedPractitionerDashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Reviews</h3>
           <div className="space-y-3">
-            {dashboardData.recentReviews?.slice(0, 3).map((review, index) => (
-              <div key={index} className="border-l-4 border-yellow-400 pl-3">
-                <div className="flex items-center mb-1">
-                  <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-current' : ''}`} />
-                    ))}
+            {Array.isArray(dashboardData.recentReviews) && dashboardData.recentReviews.length > 0 ? (
+              dashboardData.recentReviews.slice(0, 3).map((review, index) => (
+                <div key={index} className="border-l-4 border-yellow-400 pl-3">
+                  <div className="flex items-center mb-1">
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-current' : ''}`} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500 ml-2">{review.rating}/5</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">{review.rating}/5</span>
+                  <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
+                  <p className="text-xs text-gray-500 mt-1">- {review.patientName}</p>
                 </div>
-                <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
-                <p className="text-xs text-gray-500 mt-1">- {review.patientName}</p>
-              </div>
-            )) || (
+              ))
+            ) : (
               <p className="text-gray-500 text-center py-4">No reviews yet</p>
             )}
           </div>
@@ -451,7 +453,7 @@ const EnhancedPractitionerDashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Notifications</h3>
           <div className="space-y-3">
-            {notifications.slice(0, 4).map((notification, index) => (
+            {(Array.isArray(notifications) ? notifications : []).slice(0, 4).map((notification, index) => (
               <div key={index} className="flex items-start space-x-3 p-2 bg-gray-50 rounded">
                 <div className={`p-1 rounded-full ${
                   notification.type === 'appointment' ? 'bg-blue-100' :
@@ -473,7 +475,7 @@ const EnhancedPractitionerDashboard = () => {
                 </div>
               </div>
             ))}
-            {notifications.length === 0 && (
+            {(!Array.isArray(notifications) || notifications.length === 0) && (
               <p className="text-gray-500 text-center py-4">No new notifications</p>
             )}
           </div>

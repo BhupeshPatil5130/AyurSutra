@@ -17,6 +17,45 @@ import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Test endpoint without authentication for debugging
+router.get('/test-no-auth', (req, res) => {
+  res.json({
+    success: true,
+    message: 'No auth test',
+    useMockDb: req.useMockDb,
+    mockDb: req.mockDb ? 'available' : 'not available'
+  });
+});
+
+// Test notifications endpoint without authentication
+router.get('/test-notifications', (req, res) => {
+  const mockNotifications = [
+    {
+      _id: 'notif1',
+      title: 'New Appointment',
+      message: 'You have a new appointment scheduled',
+      type: 'appointment',
+      isRead: false,
+      createdAt: new Date().toISOString()
+    },
+    {
+      _id: 'notif2',
+      title: 'Payment Received',
+      message: 'Payment of ₹1500 received from John Doe',
+      type: 'payment',
+      isRead: false,
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    }
+  ];
+  
+  res.json({
+    success: true,
+    notifications: mockNotifications,
+    total: mockNotifications.length,
+    unreadCount: mockNotifications.filter(n => !n.isRead).length
+  });
+});
+
 // Apply authentication middleware to all routes
 router.use(authenticate);
 
@@ -2091,7 +2130,7 @@ router.get('/analytics', async (req, res) => {
             count: { $sum: 1 }
           }
         }
-      ]);
+    ]);
 
     res.json({
       success: true,

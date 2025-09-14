@@ -12,7 +12,11 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
+    console.log('Token received:', token);
+    console.log('JWT Secret:', process.env.JWT_SECRET || 'fallback_secret');
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    console.log('Token decoded:', decoded);
     let user;
     
     // Use mock database or MongoDB based on availability
