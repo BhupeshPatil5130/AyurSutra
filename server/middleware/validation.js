@@ -194,6 +194,52 @@ export const validatePagination = [
   handleValidationErrors
 ];
 
+// Therapy validation rules
+export const validateTherapy = [
+  body('name')
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Therapy name must be between 3 and 100 characters'),
+  body('description')
+    .trim()
+    .isLength({ min: 10, max: 1000 })
+    .withMessage('Description must be between 10 and 1000 characters'),
+  body('category')
+    .isIn(['Panchakarma', 'Abhyanga', 'Shirodhara', 'Udvartana', 'Swedana', 'Basti', 'Nasya', 'Raktamokshana', 'Vamana', 'Virechana', 'Other'])
+    .withMessage('Invalid therapy category'),
+  body('duration')
+    .isInt({ min: 15, max: 480 })
+    .withMessage('Duration must be between 15 and 480 minutes'),
+  body('cost')
+    .isFloat({ min: 0 })
+    .withMessage('Cost must be a positive number'),
+  body('requirements')
+    .optional()
+    .isArray()
+    .withMessage('Requirements must be an array'),
+  body('contraindications')
+    .optional()
+    .isArray()
+    .withMessage('Contraindications must be an array'),
+  body('benefits')
+    .optional()
+    .isArray()
+    .withMessage('Benefits must be an array'),
+  body('equipment')
+    .optional()
+    .isArray()
+    .withMessage('Equipment must be an array'),
+  body('oils')
+    .optional()
+    .isArray()
+    .withMessage('Oils must be an array'),
+  body('herbs')
+    .optional()
+    .isArray()
+    .withMessage('Herbs must be an array'),
+  handleValidationErrors
+];
+
 // Common params validation for admin routes
 export const validateCommonParams = [
   query('page')

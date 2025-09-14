@@ -13,6 +13,7 @@ import practitionerRoutes from './routes/practitioner.js';
 import patientRoutes from './routes/patient.js';
 import notificationRoutes from './routes/notifications.js';
 import uploadRoutes from './routes/upload.js';
+import therapyRoutes from './routes/therapy.js';
 
 // Import middleware
 import { handleUploadError } from './middleware/upload.js';
@@ -132,6 +133,7 @@ app.use('/api/practitioner', practitionerRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/therapies', therapyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -156,6 +158,7 @@ app.get('/api', (req, res) => {
       patient: '/api/patient - Patient portal and services',
       notifications: '/api/notifications - Notification management',
       upload: '/api/upload - File upload and storage',
+      therapies: '/api/therapies - Therapy management and scheduling',
       health: '/api/health - API health check'
     },
     features: [
@@ -182,6 +185,7 @@ app.use('*', (req, res) => {
       '/api/patient',
       '/api/notifications',
       '/api/upload',
+      '/api/therapies',
       '/api/health'
     ]
   });

@@ -29,6 +29,7 @@ class MockDatabase {
     this.healthGoals = this.loadData('healthGoals.json', []);
     this.therapySessions = this.loadData('therapySessions.json', []);
     this.dietItems = this.loadData('dietItems.json', []);
+    this.therapies = this.loadData('therapies.json', []);
     
     this.initializeDemoData();
   }
@@ -755,6 +756,133 @@ class MockDatabase {
         }
       ];
       this.saveData('dietItems.json', this.dietItems);
+
+      // Initialize Therapies
+      this.therapies = [
+        {
+          _id: 'th001',
+          name: 'Abhyanga Massage',
+          description: 'Traditional Ayurvedic full-body oil massage using warm medicated oils to promote relaxation, improve circulation, and balance doshas.',
+          category: 'Abhyanga',
+          duration: 60,
+          cost: 1500,
+          requirements: ['Empty stomach for 2 hours', 'Comfortable clothing', 'Relaxed state of mind'],
+          contraindications: ['Fever', 'Skin infections', 'Pregnancy (first trimester)', 'Open wounds'],
+          benefits: ['Stress relief', 'Improved circulation', 'Better sleep', 'Muscle relaxation', 'Detoxification'],
+          preparationInstructions: 'Take a warm shower before the session. Avoid heavy meals 2 hours prior. Wear loose, comfortable clothing.',
+          postTherapyInstructions: 'Rest for 30 minutes after the session. Take a warm shower after 2 hours. Avoid cold foods and drinks.',
+          equipment: [
+            { name: 'Massage table', quantity: 1, unit: 'piece' },
+            { name: 'Towels', quantity: 3, unit: 'pieces' },
+            { name: 'Oil warmer', quantity: 1, unit: 'piece' }
+          ],
+          oils: [
+            { name: 'Sesame oil', quantity: 200, unit: 'ml' },
+            { name: 'Coconut oil', quantity: 100, unit: 'ml' }
+          ],
+          herbs: [
+            { name: 'Ashwagandha powder', quantity: 10, unit: 'grams' },
+            { name: 'Brahmi powder', quantity: 5, unit: 'grams' }
+          ],
+          isActive: true,
+          createdBy: '507f1f77bcf86cd799439012',
+          createdAt: now,
+          updatedAt: now
+        },
+        {
+          _id: 'th002',
+          name: 'Shirodhara',
+          description: 'Continuous pouring of warm medicated oil on the forehead in a rhythmic pattern to calm the mind and nervous system.',
+          category: 'Shirodhara',
+          duration: 45,
+          cost: 1200,
+          requirements: ['Empty stomach', 'Relaxed state', 'Comfortable position'],
+          contraindications: ['High blood pressure', 'Migraine', 'Sinusitis', 'Head injuries'],
+          benefits: ['Mental relaxation', 'Better sleep', 'Reduced anxiety', 'Improved concentration', 'Headache relief'],
+          preparationInstructions: 'Avoid caffeine and stimulants. Ensure comfortable positioning. Remove jewelry and accessories.',
+          postTherapyInstructions: 'Rest for 1 hour. Avoid bright lights and loud noises. Take light meals only.',
+          equipment: [
+            { name: 'Shirodhara apparatus', quantity: 1, unit: 'piece' },
+            { name: 'Oil container', quantity: 1, unit: 'piece' },
+            { name: 'Head support', quantity: 1, unit: 'piece' }
+          ],
+          oils: [
+            { name: 'Brahmi oil', quantity: 150, unit: 'ml' },
+            { name: 'Sesame oil', quantity: 100, unit: 'ml' }
+          ],
+          herbs: [
+            { name: 'Brahmi leaves', quantity: 20, unit: 'grams' },
+            { name: 'Jatamansi powder', quantity: 10, unit: 'grams' }
+          ],
+          isActive: true,
+          createdBy: '507f1f77bcf86cd799439012',
+          createdAt: now,
+          updatedAt: now
+        },
+        {
+          _id: 'th003',
+          name: 'Udvartana',
+          description: 'Herbal powder massage for weight management, skin rejuvenation, and improved circulation.',
+          category: 'Udvartana',
+          duration: 60,
+          cost: 1000,
+          requirements: ['Dry skin', 'Comfortable clothing', 'Empty stomach'],
+          contraindications: ['Skin allergies', 'Open wounds', 'Pregnancy', 'Skin infections'],
+          benefits: ['Weight management', 'Skin exfoliation', 'Improved circulation', 'Cellulite reduction', 'Body toning'],
+          preparationInstructions: 'Ensure skin is dry. Remove all jewelry. Wear old, comfortable clothing.',
+          postTherapyInstructions: 'Take a warm shower after 30 minutes. Apply moisturizer. Drink plenty of water.',
+          equipment: [
+            { name: 'Massage table', quantity: 1, unit: 'piece' },
+            { name: 'Herbal powder container', quantity: 1, unit: 'piece' },
+            { name: 'Towels', quantity: 2, unit: 'pieces' }
+          ],
+          oils: [
+            { name: 'Sesame oil', quantity: 50, unit: 'ml' }
+          ],
+          herbs: [
+            { name: 'Triphala powder', quantity: 50, unit: 'grams' },
+            { name: 'Neem powder', quantity: 30, unit: 'grams' },
+            { name: 'Turmeric powder', quantity: 20, unit: 'grams' }
+          ],
+          isActive: true,
+          createdBy: '507f1f77bcf86cd799439012',
+          createdAt: now,
+          updatedAt: now
+        },
+        {
+          _id: 'th004',
+          name: 'Panchakarma Detox',
+          description: 'Comprehensive 5-step detoxification therapy including Vamana, Virechana, Basti, Nasya, and Raktamokshana.',
+          category: 'Panchakarma',
+          duration: 180,
+          cost: 5000,
+          requirements: ['7-day preparation diet', 'Complete medical checkup', 'Comfortable stay arrangement'],
+          contraindications: ['Pregnancy', 'Chronic diseases', 'Weak constitution', 'Elderly patients'],
+          benefits: ['Complete detoxification', 'Improved immunity', 'Better digestion', 'Mental clarity', 'Long-term health'],
+          preparationInstructions: 'Follow 7-day preparation diet. Complete medical checkup. Arrange for comfortable stay.',
+          postTherapyInstructions: 'Follow post-therapy diet for 30 days. Avoid strenuous activities. Regular follow-ups required.',
+          equipment: [
+            { name: 'Therapy room setup', quantity: 1, unit: 'complete' },
+            { name: 'Medicated oils', quantity: 10, unit: 'liters' },
+            { name: 'Herbal preparations', quantity: 20, unit: 'kgs' }
+          ],
+          oils: [
+            { name: 'Sesame oil', quantity: 2000, unit: 'ml' },
+            { name: 'Coconut oil', quantity: 1000, unit: 'ml' },
+            { name: 'Ghee', quantity: 500, unit: 'ml' }
+          ],
+          herbs: [
+            { name: 'Triphala', quantity: 200, unit: 'grams' },
+            { name: 'Ashwagandha', quantity: 100, unit: 'grams' },
+            { name: 'Brahmi', quantity: 100, unit: 'grams' }
+          ],
+          isActive: true,
+          createdBy: '507f1f77bcf86cd799439012',
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('therapies.json', this.therapies);
 
       console.log('✅ Comprehensive demo data initialized successfully');
     }
