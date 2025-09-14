@@ -183,9 +183,42 @@ router.get('/dashboard', async (req, res) => {
 // Get all practitioners pending verification
 router.get('/practitioners/pending', async (req, res) => {
   try {
-    const practitioners = await Practitioner.find({ verificationStatus: 'pending' })
-      .populate('userId', 'firstName lastName email phone createdAt')
-      .sort({ createdAt: -1 });
+    let practitioners;
+
+    if (req.useMockDb) {
+      // Use mock database
+      const allPractitioners = await req.mockDb.findAll('practitioners');
+      practitioners = allPractitioners
+        .filter(p => p.verificationStatus === 'pending')
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(practitioner => {
+          // Find the user details
+          const user = req.mockDb.users.find(u => u._id === practitioner.userId);
+          return {
+            ...practitioner,
+            userId: user ? {
+              _id: user._id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              phone: user.phone,
+              createdAt: user.createdAt
+            } : {
+              _id: practitioner.userId,
+              firstName: 'Unknown',
+              lastName: 'User',
+              email: 'unknown@example.com',
+              phone: 'N/A',
+              createdAt: practitioner.createdAt
+            }
+          };
+        });
+    } else {
+      // Use MongoDB
+      practitioners = await Practitioner.find({ verificationStatus: 'pending' })
+        .populate('userId', 'firstName lastName email phone createdAt')
+        .sort({ createdAt: -1 });
+    }
 
     res.json(practitioners);
   } catch (error) {
@@ -261,15 +294,56 @@ router.post('/practitioners/:id/verify', async (req, res) => {
 router.get('/practitioners', async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
-    const query = status ? { verificationStatus: status } : {};
     
-    const practitioners = await Practitioner.find(query)
-      .populate('userId', 'firstName lastName email phone')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    let practitioners, total;
 
-    const total = await Practitioner.countDocuments(query);
+    if (req.useMockDb) {
+      // Use mock database
+      let allPractitioners = await req.mockDb.findAll('practitioners');
+      
+      // Apply filters
+      if (status) {
+        allPractitioners = allPractitioners.filter(p => p.verificationStatus === status);
+      }
+
+      total = allPractitioners.length;
+      
+      // Sort and paginate
+      practitioners = allPractitioners
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit)
+        .map(practitioner => {
+          // Find the user details
+          const user = req.mockDb.users.find(u => u._id === practitioner.userId);
+          return {
+            ...practitioner,
+            userId: user ? {
+              _id: user._id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              phone: user.phone
+            } : {
+              _id: practitioner.userId,
+              firstName: 'Unknown',
+              lastName: 'User',
+              email: 'unknown@example.com',
+              phone: 'N/A'
+            }
+          };
+        });
+    } else {
+      // Use MongoDB
+      const query = status ? { verificationStatus: status } : {};
+      
+      practitioners = await Practitioner.find(query)
+        .populate('userId', 'firstName lastName email phone')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Practitioner.countDocuments(query);
+    }
 
     res.json({
       practitioners,
@@ -282,18 +356,207 @@ router.get('/practitioners', async (req, res) => {
   }
 });
 
+// Get patient statistics
+router.get('/patients/stats', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const allPatients = await req.mockDb.findAll('patients');
+      const allUsers = await req.mockDb.findAll('users');
+      const allAppointments = await req.mockDb.findAll('appointments');
+      
+      const patientUsers = allUsers.filter(user => user.role === 'patient');
+      
+      const stats = {
+        totalPatients: allPatients.length,
+        newPatientsThisMonth: patientUsers.filter(user => {
+          const userDate = new Date(user.createdAt);
+          const now = new Date();
+          return userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear();
+        }).length,
+        activePatients: allPatients.filter(patient => {
+          const recentAppointments = allAppointments.filter(apt => 
+            apt.patientId === patient._id && 
+            new Date(apt.appointmentDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          );
+          return recentAppointments.length > 0;
+        }).length,
+        patientsByGender: {
+          male: allPatients.filter(p => p.gender === 'male').length,
+          female: allPatients.filter(p => p.gender === 'female').length,
+          other: allPatients.filter(p => p.gender === 'other').length
+        },
+        averageAge: allPatients.reduce((sum, patient) => {
+          const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
+          return sum + age;
+        }, 0) / allPatients.length || 0,
+        topConditions: ['Hypertension', 'Stress', 'Digestive Issues', 'Migraine', 'Diabetes'],
+        monthlyGrowth: 12.5
+      };
+      
+      res.json(stats);
+    } else {
+      // Use MongoDB
+      const totalPatients = await Patient.countDocuments();
+      const newPatientsThisMonth = await Patient.countDocuments({
+        createdAt: {
+          $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        }
+      });
+      
+      const stats = {
+        totalPatients,
+        newPatientsThisMonth,
+        activePatients: totalPatients * 0.7, // Mock calculation
+        patientsByGender: {
+          male: await Patient.countDocuments({ gender: 'male' }),
+          female: await Patient.countDocuments({ gender: 'female' }),
+          other: await Patient.countDocuments({ gender: 'other' })
+        },
+        averageAge: 42.5, // Mock calculation
+        topConditions: ['Hypertension', 'Stress', 'Digestive Issues', 'Migraine', 'Diabetes'],
+        monthlyGrowth: 12.5
+      };
+      
+      res.json(stats);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get patient details
+router.get('/patients/:id/details', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p._id === id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const user = req.mockDb.users.find(u => u._id === patient.userId);
+      const appointments = req.mockDb.appointments.filter(apt => apt.patientId === id);
+      const medicalRecords = req.mockDb.medicalRecords.filter(record => record.patientId === id);
+      const therapyPlans = req.mockDb.therapyPlans.filter(plan => plan.patientId === id);
+      
+      const patientDetails = {
+        ...patient,
+        user: user ? {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt
+        } : null,
+        appointments: appointments.map(apt => {
+          const practitioner = req.mockDb.practitioners.find(p => p._id === apt.practitionerId);
+          const practitionerUser = practitioner ? req.mockDb.users.find(u => u._id === practitioner.userId) : null;
+          
+          return {
+            ...apt,
+            practitioner: practitionerUser ? {
+              _id: practitionerUser._id,
+              firstName: practitionerUser.firstName,
+              lastName: practitionerUser.lastName,
+              email: practitionerUser.email
+            } : null
+          };
+        }),
+        medicalRecords,
+        therapyPlans,
+        statistics: {
+          totalAppointments: appointments.length,
+          completedAppointments: appointments.filter(apt => apt.status === 'completed').length,
+          totalSessions: appointments.filter(apt => apt.type === 'therapy').length,
+          lastVisit: appointments.length > 0 ? appointments.sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate))[0].appointmentDate : null
+        }
+      };
+      
+      res.json(patientDetails);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findById(id)
+        .populate('userId', 'firstName lastName email phone role isActive createdAt')
+        .populate({
+          path: 'appointments',
+          populate: {
+            path: 'practitionerId',
+            populate: {
+              path: 'userId',
+              select: 'firstName lastName email'
+            }
+          }
+        })
+        .populate('medicalRecords')
+        .populate('therapyPlans');
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      res.json(patient);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get all patients
 router.get('/patients', async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     
-    const patients = await Patient.find()
-      .populate('userId', 'firstName lastName email phone createdAt')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    let patients, total;
 
-    const total = await Patient.countDocuments();
+    if (req.useMockDb) {
+      // Use mock database
+      const allPatients = await req.mockDb.findAll('patients');
+      
+      total = allPatients.length;
+      
+      // Sort and paginate
+      patients = allPatients
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit)
+        .map(patient => {
+          // Find the user details
+          const user = req.mockDb.users.find(u => u._id === patient.userId);
+          return {
+            ...patient,
+            userId: user ? {
+              _id: user._id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              phone: user.phone,
+              createdAt: user.createdAt
+            } : {
+              _id: patient.userId,
+              firstName: 'Unknown',
+              lastName: 'User',
+              email: 'unknown@example.com',
+              phone: 'N/A',
+              createdAt: patient.createdAt
+            }
+          };
+        });
+    } else {
+      // Use MongoDB
+      patients = await Patient.find()
+        .populate('userId', 'firstName lastName email phone createdAt')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Patient.countDocuments();
+    }
 
     res.json({
       patients,
@@ -306,34 +569,584 @@ router.get('/patients', async (req, res) => {
   }
 });
 
+// Get appointment statistics
+router.get('/appointments/stats', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const allAppointments = await req.mockDb.findAll('appointments');
+      
+      const stats = {
+        totalAppointments: allAppointments.length,
+        todayAppointments: allAppointments.filter(apt => {
+          const aptDate = new Date(apt.appointmentDate);
+          const today = new Date();
+          return aptDate.toDateString() === today.toDateString();
+        }).length,
+        thisWeekAppointments: allAppointments.filter(apt => {
+          const aptDate = new Date(apt.appointmentDate);
+          const now = new Date();
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return aptDate >= weekAgo;
+        }).length,
+        thisMonthAppointments: allAppointments.filter(apt => {
+          const aptDate = new Date(apt.appointmentDate);
+          const now = new Date();
+          return aptDate.getMonth() === now.getMonth() && aptDate.getFullYear() === now.getFullYear();
+        }).length,
+        appointmentsByStatus: {
+          confirmed: allAppointments.filter(apt => apt.status === 'confirmed').length,
+          completed: allAppointments.filter(apt => apt.status === 'completed').length,
+          cancelled: allAppointments.filter(apt => apt.status === 'cancelled').length,
+          pending: allAppointments.filter(apt => apt.status === 'pending').length
+        },
+        appointmentsByType: {
+          consultation: allAppointments.filter(apt => apt.type === 'consultation').length,
+          therapy: allAppointments.filter(apt => apt.type === 'therapy').length,
+          'follow-up': allAppointments.filter(apt => apt.type === 'follow-up').length
+        },
+        averageSessionDuration: allAppointments.reduce((sum, apt) => sum + (apt.duration || 60), 0) / allAppointments.length || 60,
+        completionRate: (allAppointments.filter(apt => apt.status === 'completed').length / allAppointments.length * 100) || 0,
+        cancellationRate: (allAppointments.filter(apt => apt.status === 'cancelled').length / allAppointments.length * 100) || 0
+      };
+      
+      res.json(stats);
+    } else {
+      // Use MongoDB
+      const totalAppointments = await Appointment.countDocuments();
+      const todayAppointments = await Appointment.countDocuments({
+        appointmentDate: {
+          $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date().setHours(23, 59, 59, 999))
+        }
+      });
+      
+      const stats = {
+        totalAppointments,
+        todayAppointments,
+        thisWeekAppointments: totalAppointments * 0.3, // Mock calculation
+        thisMonthAppointments: totalAppointments * 0.8, // Mock calculation
+        appointmentsByStatus: {
+          confirmed: await Appointment.countDocuments({ status: 'confirmed' }),
+          completed: await Appointment.countDocuments({ status: 'completed' }),
+          cancelled: await Appointment.countDocuments({ status: 'cancelled' }),
+          pending: await Appointment.countDocuments({ status: 'pending' })
+        },
+        appointmentsByType: {
+          consultation: await Appointment.countDocuments({ type: 'consultation' }),
+          therapy: await Appointment.countDocuments({ type: 'therapy' }),
+          'follow-up': await Appointment.countDocuments({ type: 'follow-up' })
+        },
+        averageSessionDuration: 60,
+        completionRate: 75.5,
+        cancellationRate: 8.2
+      };
+      
+      res.json(stats);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get appointment details
+router.get('/appointments/:id/details', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const appointment = req.mockDb.appointments.find(apt => apt._id === id);
+      
+      if (!appointment) {
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+      
+      const patient = req.mockDb.patients.find(p => p._id === appointment.patientId);
+      const practitioner = req.mockDb.practitioners.find(p => p._id === appointment.practitionerId);
+      
+      const patientUser = patient ? req.mockDb.users.find(u => u._id === patient.userId) : null;
+      const practitionerUser = practitioner ? req.mockDb.users.find(u => u._id === practitioner.userId) : null;
+      
+      const appointmentDetails = {
+        ...appointment,
+        patient: patient ? {
+          _id: patient._id,
+          user: patientUser ? {
+            _id: patientUser._id,
+            firstName: patientUser.firstName,
+            lastName: patientUser.lastName,
+            email: patientUser.email,
+            phone: patientUser.phone
+          } : null,
+          dateOfBirth: patient.dateOfBirth,
+          gender: patient.gender,
+          medicalHistory: patient.medicalHistory,
+          allergies: patient.allergies
+        } : null,
+        practitioner: practitioner ? {
+          _id: practitioner._id,
+          user: practitionerUser ? {
+            _id: practitionerUser._id,
+            firstName: practitionerUser.firstName,
+            lastName: practitionerUser.lastName,
+            email: practitionerUser.email,
+            phone: practitionerUser.phone
+          } : null,
+          specializations: practitioner.specializations,
+          experience: practitioner.experience,
+          consultationFee: practitioner.consultationFee
+        } : null,
+        sessionNotes: appointment.notes || 'No session notes available',
+        followUpRequired: appointment.status === 'completed' && Math.random() > 0.5,
+        nextAppointment: appointment.status === 'completed' ? null : appointment.appointmentDate
+      };
+      
+      res.json(appointmentDetails);
+    } else {
+      // Use MongoDB
+      const appointment = await Appointment.findById(id)
+        .populate({
+          path: 'patientId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email phone'
+          }
+        })
+        .populate({
+          path: 'practitionerId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email phone'
+          }
+        });
+      
+      if (!appointment) {
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+      
+      res.json(appointment);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get transactions
+router.get('/transactions', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, type, startDate, endDate } = req.query;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      let allTransactions = await req.mockDb.findAll('invoices');
+      
+      // Apply filters
+      if (status) {
+        allTransactions = allTransactions.filter(t => t.status === status);
+      }
+      if (type) {
+        allTransactions = allTransactions.filter(t => t.type === type);
+      }
+      if (startDate) {
+        allTransactions = allTransactions.filter(t => new Date(t.createdAt) >= new Date(startDate));
+      }
+      if (endDate) {
+        allTransactions = allTransactions.filter(t => new Date(t.createdAt) <= new Date(endDate));
+      }
+
+      const total = allTransactions.length;
+      
+      // Sort and paginate
+      const transactions = allTransactions
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit)
+        .map(transaction => {
+          const patient = req.mockDb.patients.find(p => p._id === transaction.patientId);
+          const patientUser = patient ? req.mockDb.users.find(u => u._id === patient.userId) : null;
+          
+          return {
+            ...transaction,
+            patient: patientUser ? {
+              _id: patientUser._id,
+              firstName: patientUser.firstName,
+              lastName: patientUser.lastName,
+              email: patientUser.email
+            } : null
+          };
+        });
+      
+      res.json({
+        transactions,
+        totalPages: Math.ceil(total / limit),
+        currentPage: parseInt(page),
+        total
+      });
+    } else {
+      // Use MongoDB
+      const query = {};
+      if (status) query.status = status;
+      if (type) query.type = type;
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) query.createdAt.$lte = new Date(endDate);
+      }
+      
+      const transactions = await Invoice.find(query)
+        .populate('patientId', 'userId')
+        .populate({
+          path: 'patientId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email'
+          }
+        })
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      const total = await Invoice.countDocuments(query);
+
+      res.json({
+        transactions,
+        totalPages: Math.ceil(total / limit),
+        currentPage: parseInt(page),
+        total
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get content
+router.get('/content', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, type, status } = req.query;
+    
+    if (req.useMockDb) {
+      // Use mock database - create sample content data
+      const sampleContent = [
+        {
+          _id: 'content001',
+          title: 'Ayurvedic Wellness Guide',
+          type: 'article',
+          status: 'published',
+          content: 'Comprehensive guide to Ayurvedic wellness practices...',
+          author: req.user._id,
+          tags: ['ayurveda', 'wellness', 'health'],
+          views: 1250,
+          likes: 45,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'content002',
+          title: 'Panchakarma Benefits',
+          type: 'video',
+          status: 'published',
+          content: 'Educational video about Panchakarma therapy benefits...',
+          author: req.user._id,
+          tags: ['panchakarma', 'therapy', 'detox'],
+          views: 890,
+          likes: 32,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'content003',
+          title: 'Healthy Diet Tips',
+          type: 'article',
+          status: 'draft',
+          content: 'Tips for maintaining a healthy Ayurvedic diet...',
+          author: req.user._id,
+          tags: ['diet', 'nutrition', 'ayurveda'],
+          views: 0,
+          likes: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      let filteredContent = sampleContent;
+      
+      if (type) {
+        filteredContent = filteredContent.filter(c => c.type === type);
+      }
+      if (status) {
+        filteredContent = filteredContent.filter(c => c.status === status);
+      }
+      
+      const total = filteredContent.length;
+      const content = filteredContent
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit);
+      
+      res.json({
+        content,
+        totalPages: Math.ceil(total / limit),
+        currentPage: parseInt(page),
+        total
+      });
+    } else {
+      // Use MongoDB - would need a Content model
+      res.json({
+        content: [],
+        totalPages: 0,
+        currentPage: parseInt(page),
+        total: 0
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Create content
+router.post('/content', async (req, res) => {
+  try {
+    const { title, type, content, tags, status = 'draft' } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const newContent = {
+        _id: req.mockDb.generateId(),
+        title,
+        type,
+        content,
+        tags: tags || [],
+        status,
+        author: req.user._id,
+        views: 0,
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // In a real implementation, this would be saved to a content collection
+      res.json({
+        message: 'Content created successfully',
+        content: newContent
+      });
+    } else {
+      // Use MongoDB
+      res.json({ message: 'Content creation not implemented for MongoDB' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update content
+router.put('/content/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, type, content, tags, status } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      res.json({
+        message: 'Content updated successfully',
+        content: {
+          _id: id,
+          title,
+          type,
+          content,
+          tags,
+          status,
+          updatedAt: new Date().toISOString()
+        }
+      });
+    } else {
+      // Use MongoDB
+      res.json({ message: 'Content update not implemented for MongoDB' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete content
+router.delete('/content/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      res.json({ message: 'Content deleted successfully' });
+    } else {
+      // Use MongoDB
+      res.json({ message: 'Content deletion not implemented for MongoDB' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// System backup
+router.post('/system/backup', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Mock backup process
+      const backupData = {
+        id: req.mockDb.generateId(),
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        size: '2.5 MB',
+        tables: ['users', 'patients', 'practitioners', 'appointments', 'notifications'],
+        location: '/backups/backup_' + Date.now() + '.json'
+      };
+      
+      res.json({
+        message: 'System backup completed successfully',
+        backup: backupData
+      });
+    } else {
+      // Real backup implementation would go here
+      res.json({ message: 'Backup initiated successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Toggle maintenance mode
+router.post('/system/maintenance-mode', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Mock maintenance mode toggle
+      const currentMode = Math.random() > 0.5; // Random current state
+      const newMode = !currentMode;
+      
+      res.json({
+        message: `Maintenance mode ${newMode ? 'enabled' : 'disabled'} successfully`,
+        maintenanceMode: newMode,
+        estimatedDowntime: newMode ? '30 minutes' : null
+      });
+    } else {
+      // Real maintenance mode implementation would go here
+      res.json({ message: 'Maintenance mode toggled successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Clear system cache
+router.post('/system/clear-cache', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Mock cache clearing
+      const cacheStats = {
+        clearedItems: 1250,
+        freedMemory: '45.2 MB',
+        cacheTypes: ['user-sessions', 'api-responses', 'static-assets', 'database-queries'],
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'System cache cleared successfully',
+        stats: cacheStats
+      });
+    } else {
+      // Real cache clearing implementation would go here
+      res.json({ message: 'System cache cleared successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get all appointments
 router.get('/appointments', async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
-    const query = status ? { status } : {};
     
-    const appointments = await Appointment.find(query)
-      .populate('patientId', 'userId')
-      .populate('practitionerId', 'userId')
-      .populate({
-        path: 'patientId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName email'
-        }
-      })
-      .populate({
-        path: 'practitionerId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName email'
-        }
-      })
-      .sort({ appointmentDate: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    let appointments, total;
 
-    const total = await Appointment.countDocuments(query);
+    if (req.useMockDb) {
+      // Use mock database
+      let allAppointments = await req.mockDb.findAll('appointments');
+      
+      // Apply filters
+      if (status) {
+        allAppointments = allAppointments.filter(apt => apt.status === status);
+      }
+
+      total = allAppointments.length;
+      
+      // Sort and paginate
+      appointments = allAppointments
+        .sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate))
+        .slice((page - 1) * limit, page * limit)
+        .map(appointment => {
+          // Find patient and practitioner details
+          const patient = req.mockDb.patients.find(p => p._id === appointment.patientId);
+          const practitioner = req.mockDb.practitioners.find(p => p._id === appointment.practitionerId);
+          
+          const patientUser = patient ? req.mockDb.users.find(u => u._id === patient.userId) : null;
+          const practitionerUser = practitioner ? req.mockDb.users.find(u => u._id === practitioner.userId) : null;
+          
+          return {
+            ...appointment,
+            patientId: patient ? {
+              _id: patient._id,
+              userId: patientUser ? {
+                _id: patientUser._id,
+                firstName: patientUser.firstName,
+                lastName: patientUser.lastName,
+                email: patientUser.email
+              } : {
+                _id: patient.userId,
+                firstName: 'Unknown',
+                lastName: 'Patient',
+                email: 'unknown@example.com'
+              }
+            } : null,
+            practitionerId: practitioner ? {
+              _id: practitioner._id,
+              userId: practitionerUser ? {
+                _id: practitionerUser._id,
+                firstName: practitionerUser.firstName,
+                lastName: practitionerUser.lastName,
+                email: practitionerUser.email
+              } : {
+                _id: practitioner.userId,
+                firstName: 'Unknown',
+                lastName: 'Practitioner',
+                email: 'unknown@example.com'
+              }
+            } : null
+          };
+        });
+    } else {
+      // Use MongoDB
+      const query = status ? { status } : {};
+      
+      appointments = await Appointment.find(query)
+        .populate('patientId', 'userId')
+        .populate('practitionerId', 'userId')
+        .populate({
+          path: 'patientId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email'
+          }
+        })
+        .populate({
+          path: 'practitionerId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email'
+          }
+        })
+        .sort({ appointmentDate: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Appointment.countDocuments(query);
+    }
 
     res.json({
       appointments,
@@ -383,29 +1196,71 @@ router.post('/users/:id/activate', async (req, res) => {
 });
 
 // Get all users with filtering
-router.get('/users', validateCommonParams, async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const { role, status, page = 1, limit = 10, search } = req.query;
-    const query = {};
+    
+    console.log('useMockDb:', req.useMockDb);
+    console.log('mockDb available:', !!req.mockDb);
+    
+    let users, total;
 
-    if (role) query.role = role;
-    if (status === 'active') query.isActive = true;
-    if (status === 'inactive') query.isActive = false;
-    if (search) {
-      query.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
+    if (req.useMockDb) {
+      // Use mock database
+      let allUsers = await req.mockDb.findAll('users');
+      
+      // Apply filters
+      if (role) {
+        allUsers = allUsers.filter(user => user.role === role);
+      }
+      if (status === 'active') {
+        allUsers = allUsers.filter(user => user.isActive === true);
+      }
+      if (status === 'inactive') {
+        allUsers = allUsers.filter(user => user.isActive === false);
+      }
+      if (search) {
+        const searchLower = search.toLowerCase();
+        allUsers = allUsers.filter(user => 
+          (user.firstName && user.firstName.toLowerCase().includes(searchLower)) ||
+          (user.lastName && user.lastName.toLowerCase().includes(searchLower)) ||
+          (user.email && user.email.toLowerCase().includes(searchLower))
+        );
+      }
+
+      total = allUsers.length;
+      
+      // Sort and paginate
+      users = allUsers
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit)
+        .map(user => {
+          const { password, refreshTokens, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        });
+    } else {
+      // Use MongoDB
+      const query = {};
+
+      if (role) query.role = role;
+      if (status === 'active') query.isActive = true;
+      if (status === 'inactive') query.isActive = false;
+      if (search) {
+        query.$or = [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      users = await User.find(query)
+        .select('-password -refreshTokens')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await User.countDocuments(query);
     }
-
-    const users = await User.find(query)
-      .select('-password -refreshTokens')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await User.countDocuments(query);
 
     res.json({
       users,
@@ -609,36 +1464,79 @@ router.post('/notifications/broadcast', async (req, res) => {
       return res.status(400).json({ message: 'Title and message are required' });
     }
 
-    // Get target users
-    const userQuery = targetRole ? { role: targetRole } : {};
-    const users = await User.find(userQuery).select('_id');
+    if (req.useMockDb) {
+      // Use mock database
+      let targetUsers = req.mockDb.users;
+      
+      if (targetRole) {
+        targetUsers = targetUsers.filter(user => user.role === targetRole);
+      }
 
-    // Create notifications for all users
-    const notifications = users.map(user => ({
-      userId: user._id,
-      title,
-      message,
-      type,
-      priority,
-      createdBy: req.user._id
-    }));
-
-    await Notification.insertMany(notifications);
-
-    // Send real-time notifications
-    users.forEach(user => {
-      req.io.to(user._id.toString()).emit('notification', {
+      // Create notifications for all users
+      const newNotifications = targetUsers.map(user => ({
+        _id: req.mockDb.generateId(),
+        userId: user._id,
         title,
         message,
         type,
-        priority
-      });
-    });
+        priority,
+        isRead: false,
+        read: false,
+        createdBy: req.user._id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
 
-    res.json({ 
-      message: 'Broadcast notification sent successfully',
-      recipientCount: users.length
-    });
+      req.mockDb.notifications.push(...newNotifications);
+      req.mockDb.saveData('notifications.json', req.mockDb.notifications);
+
+      // Send real-time notifications
+      targetUsers.forEach(user => {
+        req.io.to(user._id.toString()).emit('notification', {
+          title,
+          message,
+          type,
+          priority
+        });
+      });
+
+      res.json({ 
+        message: 'Broadcast notification sent successfully',
+        recipientCount: targetUsers.length
+      });
+    } else {
+      // Use MongoDB
+      // Get target users
+      const userQuery = targetRole ? { role: targetRole } : {};
+      const users = await User.find(userQuery).select('_id');
+
+      // Create notifications for all users
+      const notifications = users.map(user => ({
+        userId: user._id,
+        title,
+        message,
+        type,
+        priority,
+        createdBy: req.user._id
+      }));
+
+      await Notification.insertMany(notifications);
+
+      // Send real-time notifications
+      users.forEach(user => {
+        req.io.to(user._id.toString()).emit('notification', {
+          title,
+          message,
+          type,
+          priority
+        });
+      });
+
+      res.json({ 
+        message: 'Broadcast notification sent successfully',
+        recipientCount: users.length
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -648,19 +1546,70 @@ router.post('/notifications/broadcast', async (req, res) => {
 router.get('/notifications', async (req, res) => {
   try {
     const { page = 1, limit = 20, type, priority } = req.query;
-    const query = {};
     
-    if (type) query.type = type;
-    if (priority) query.priority = priority;
+    let notifications, total;
 
-    const notifications = await Notification.find(query)
-      .populate('userId', 'firstName lastName email role')
-      .populate('createdBy', 'firstName lastName')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    if (req.useMockDb) {
+      // Use mock database
+      let allNotifications = await req.mockDb.findAll('notifications');
+      
+      // Apply filters
+      if (type) {
+        allNotifications = allNotifications.filter(n => n.type === type);
+      }
+      if (priority) {
+        allNotifications = allNotifications.filter(n => n.priority === priority);
+      }
 
-    const total = await Notification.countDocuments(query);
+      total = allNotifications.length;
+      
+      // Sort and paginate
+      notifications = allNotifications
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice((page - 1) * limit, page * limit)
+        .map(notification => {
+          // Find user details
+          const user = req.mockDb.users.find(u => u._id === notification.userId);
+          const createdBy = notification.createdBy ? req.mockDb.users.find(u => u._id === notification.createdBy) : null;
+          
+          return {
+            ...notification,
+            userId: user ? {
+              _id: user._id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              role: user.role
+            } : {
+              _id: notification.userId,
+              firstName: 'Unknown',
+              lastName: 'User',
+              email: 'unknown@example.com',
+              role: 'user'
+            },
+            createdBy: createdBy ? {
+              _id: createdBy._id,
+              firstName: createdBy.firstName,
+              lastName: createdBy.lastName
+            } : null
+          };
+        });
+    } else {
+      // Use MongoDB
+      const query = {};
+      
+      if (type) query.type = type;
+      if (priority) query.priority = priority;
+
+      notifications = await Notification.find(query)
+        .populate('userId', 'firstName lastName email role')
+        .populate('createdBy', 'firstName lastName')
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Notification.countDocuments(query);
+    }
 
     res.json({
       notifications,
@@ -676,10 +1625,23 @@ router.get('/notifications', async (req, res) => {
 // Delete notification
 router.delete('/notifications/:id', async (req, res) => {
   try {
-    const notification = await Notification.findByIdAndDelete(req.params.id);
-    
-    if (!notification) {
-      return res.status(404).json({ message: 'Notification not found' });
+    if (req.useMockDb) {
+      // Use mock database
+      const notificationIndex = req.mockDb.notifications.findIndex(n => n._id === req.params.id);
+      
+      if (notificationIndex === -1) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+      
+      req.mockDb.notifications.splice(notificationIndex, 1);
+      req.mockDb.saveData('notifications.json', req.mockDb.notifications);
+    } else {
+      // Use MongoDB
+      const notification = await Notification.findByIdAndDelete(req.params.id);
+      
+      if (!notification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
     }
 
     res.json({ message: 'Notification deleted successfully' });

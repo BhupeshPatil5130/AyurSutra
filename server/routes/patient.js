@@ -107,48 +107,79 @@ router.put('/profile', async (req, res) => {
 // Get dashboard statistics
 router.get('/dashboard', async (req, res) => {
   try {
-    const patient = await Patient.findOne({ userId: req.user._id });
+    const { range = '7d' } = req.query;
+    
+    let patient;
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { userId: req.user._id });
+      patient = patients[0];
+    } else {
+      patient = await Patient.findOne({ userId: req.user._id });
+    }
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
 
-    const totalAppointments = await Appointment.countDocuments({ patientId: patient._id });
-    const completedSessions = await Appointment.countDocuments({ 
-      patientId: patient._id, 
-      status: 'completed' 
-    });
-    const upcomingAppointments = await Appointment.countDocuments({
-      patientId: patient._id,
-      status: { $in: ['scheduled', 'confirmed'] },
-      appointmentDate: { $gte: new Date() }
-    });
-    const activeTherapyPlans = await TherapyPlan.countDocuments({
-      patientId: patient._id,
-      status: 'active'
-    });
+    let totalAppointments, completedSessions, upcomingAppointments, activeTherapyPlans, nextAppointment;
 
-    // Get next appointment
-    const nextAppointment = await Appointment.findOne({
-      patientId: patient._id,
-      status: { $in: ['scheduled', 'confirmed'] },
-      appointmentDate: { $gte: new Date() }
-    })
-    .populate({
-      path: 'practitionerId',
-      populate: {
-        path: 'userId',
-        select: 'firstName lastName'
-      }
-    })
-    .sort({ appointmentDate: 1, startTime: 1 });
+    if (req.useMockDb) {
+      const appointments = await req.mockDb.find('appointments', { patientId: patient._id });
+      const therapyPlans = await req.mockDb.find('therapyPlans', { patientId: patient._id });
+      
+      totalAppointments = appointments.length;
+      completedSessions = appointments.filter(a => a.status === 'completed').length;
+      upcomingAppointments = appointments.filter(a => 
+        ['scheduled', 'confirmed'].includes(a.status) && 
+        new Date(a.date) >= new Date()
+      ).length;
+      activeTherapyPlans = therapyPlans.filter(tp => tp.status === 'active').length;
+      
+      // Get next appointment
+      const upcoming = appointments
+        .filter(a => ['scheduled', 'confirmed'].includes(a.status) && new Date(a.date) >= new Date())
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      nextAppointment = upcoming[0] || null;
+    } else {
+      totalAppointments = await Appointment.countDocuments({ patientId: patient._id });
+      completedSessions = await Appointment.countDocuments({ 
+        patientId: patient._id, 
+        status: 'completed' 
+      });
+      upcomingAppointments = await Appointment.countDocuments({
+        patientId: patient._id,
+        status: { $in: ['scheduled', 'confirmed'] },
+        appointmentDate: { $gte: new Date() }
+      });
+      activeTherapyPlans = await TherapyPlan.countDocuments({
+        patientId: patient._id,
+        status: 'active'
+      });
+
+      // Get next appointment
+      nextAppointment = await Appointment.findOne({
+        patientId: patient._id,
+        status: { $in: ['scheduled', 'confirmed'] },
+        appointmentDate: { $gte: new Date() }
+      })
+      .populate({
+        path: 'practitionerId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName'
+        }
+      })
+      .sort({ appointmentDate: 1, startTime: 1 });
+    }
 
     res.json({
       totalAppointments,
       completedSessions,
       upcomingAppointments,
       activeTherapyPlans,
-      nextAppointment
+      nextAppointment,
+      range
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -159,41 +190,93 @@ router.get('/dashboard', async (req, res) => {
 router.get('/appointments', async (req, res) => {
   try {
     const { status, type, page = 1, limit = 10 } = req.query;
-    const patient = await Patient.findOne({ userId: req.user._id });
+    
+    let patient;
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { userId: req.user._id });
+      patient = patients[0];
+    } else {
+      patient = await Patient.findOne({ userId: req.user._id });
+    }
 
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
 
-    let query = { patientId: patient._id };
-    
-    if (status) query.status = status;
-    if (type === 'upcoming') {
-      query.appointmentDate = { $gte: new Date() };
-      query.status = { $in: ['scheduled', 'confirmed'] };
-    } else if (type === 'past') {
-      query.appointmentDate = { $lt: new Date() };
+    let appointments, total;
+
+    if (req.useMockDb) {
+      let allAppointments = await req.mockDb.find('appointments', { patientId: patient._id });
+      
+      // Apply filters
+      if (status) {
+        allAppointments = allAppointments.filter(apt => apt.status === status);
+      }
+      if (type === 'upcoming') {
+        allAppointments = allAppointments.filter(apt => 
+          ['scheduled', 'confirmed'].includes(apt.status) && 
+          new Date(apt.date) >= new Date()
+        );
+      } else if (type === 'past') {
+        allAppointments = allAppointments.filter(apt => new Date(apt.date) < new Date());
+      }
+
+      total = allAppointments.length;
+      
+      // Sort and paginate
+      appointments = allAppointments
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice((page - 1) * limit, page * limit);
+
+      // Add practitioner details
+      appointments = appointments.map(apt => {
+        const practitioner = req.mockDb.practitioners.find(p => p._id === apt.practitionerId);
+        return {
+          ...apt,
+          practitionerId: practitioner ? {
+            _id: practitioner._id,
+            userId: {
+              firstName: practitioner.userId ? req.mockDb.users.find(u => u._id === practitioner.userId)?.firstName : 'Unknown',
+              lastName: practitioner.userId ? req.mockDb.users.find(u => u._id === practitioner.userId)?.lastName : 'Practitioner',
+              email: practitioner.userId ? req.mockDb.users.find(u => u._id === practitioner.userId)?.email : 'unknown@example.com',
+              phone: practitioner.userId ? req.mockDb.users.find(u => u._id === practitioner.userId)?.phone : '+91-0000000000'
+            },
+            specializations: practitioner.specializations,
+            consultationFee: practitioner.consultationFee
+          } : null
+        };
+      });
+    } else {
+      let query = { patientId: patient._id };
+      
+      if (status) query.status = status;
+      if (type === 'upcoming') {
+        query.appointmentDate = { $gte: new Date() };
+        query.status = { $in: ['scheduled', 'confirmed'] };
+      } else if (type === 'past') {
+        query.appointmentDate = { $lt: new Date() };
+      }
+
+      appointments = await Appointment.find(query)
+        .populate({
+          path: 'practitionerId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email phone'
+          }
+        })
+        .populate('therapyPlanId')
+        .sort({ appointmentDate: -1, startTime: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Appointment.countDocuments(query);
     }
-
-    const appointments = await Appointment.find(query)
-      .populate({
-        path: 'practitionerId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName email phone'
-        }
-      })
-      .populate('therapyPlanId')
-      .sort({ appointmentDate: -1, startTime: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Appointment.countDocuments(query);
 
     res.json({
       appointments,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total
     });
   } catch (error) {
@@ -267,25 +350,148 @@ router.get('/practitioners', async (req, res) => {
   try {
     const { specialization, page = 1, limit = 10 } = req.query;
     
-    let query = { verificationStatus: 'approved' };
-    if (specialization) {
-      query.specializations = { $in: [specialization] };
+    let practitioners, total;
+
+    if (req.useMockDb) {
+      let allPractitioners = await req.mockDb.find('practitioners', { isVerified: true });
+      
+      // Apply specialization filter
+      if (specialization) {
+        allPractitioners = allPractitioners.filter(p => 
+          p.specializations && p.specializations.includes(specialization)
+        );
+      }
+
+      total = allPractitioners.length;
+      
+      // Sort and paginate
+      practitioners = allPractitioners
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice((page - 1) * limit, page * limit);
+
+      // Add user details
+      practitioners = practitioners.map(practitioner => {
+        const user = req.mockDb.users.find(u => u._id === practitioner.userId);
+        return {
+          ...practitioner,
+          userId: user ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone
+          } : null
+        };
+      });
+    } else {
+      let query = { verificationStatus: 'approved' };
+      if (specialization) {
+        query.specializations = { $in: [specialization] };
+      }
+
+      practitioners = await Practitioner.find(query)
+        .populate('userId', 'firstName lastName email phone')
+        .sort({ rating: -1, totalReviews: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+
+      total = await Practitioner.countDocuments(query);
     }
-
-    const practitioners = await Practitioner.find(query)
-      .populate('userId', 'firstName lastName email phone')
-      .sort({ rating: -1, totalReviews: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Practitioner.countDocuments(query);
 
     res.json({
       practitioners,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get practitioner details
+router.get('/practitioners/:id', async (req, res) => {
+  try {
+    const practitionerId = req.params.id;
+    
+    let practitioner;
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { _id: practitionerId });
+      practitioner = practitioners[0];
+      
+      if (practitioner) {
+        const user = req.mockDb.users.find(u => u._id === practitioner.userId);
+        practitioner.userId = user ? {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone
+        } : null;
+      }
+    } else {
+      practitioner = await Practitioner.findById(practitionerId)
+        .populate('userId', 'firstName lastName email phone');
+    }
+
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner not found' });
+    }
+
+    res.json(practitioner);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get available time slots for a practitioner
+router.get('/practitioners/:id/slots', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const practitionerId = req.params.id;
+    
+    if (!date) {
+      return res.status(400).json({ message: 'Date parameter is required' });
+    }
+
+    let practitioner;
+    if (req.useMockDb) {
+      const practitioners = await req.mockDb.find('practitioners', { _id: practitionerId });
+      practitioner = practitioners[0];
+    } else {
+      practitioner = await Practitioner.findById(practitionerId);
+    }
+
+    if (!practitioner) {
+      return res.status(404).json({ message: 'Practitioner not found' });
+    }
+
+    // Generate mock available slots
+    const availableSlots = [];
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // Check if practitioner is available on this day
+    const dayAvailability = practitioner.availability?.find(a => a.day === dayOfWeek);
+    
+    if (dayAvailability && dayAvailability.slots) {
+      dayAvailability.slots.forEach(slot => {
+        availableSlots.push({
+          time: slot,
+          available: true,
+          duration: 60
+        });
+      });
+    } else {
+      // Default slots if no availability set
+      const defaultSlots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+      defaultSlots.forEach(slot => {
+        availableSlots.push({
+          time: slot,
+          available: true,
+          duration: 60
+        });
+      });
+    }
+
+    res.json(availableSlots);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -807,10 +1013,72 @@ router.post('/conversations/:id/messages', validateMongoId('id'), async (req, re
   }
 });
 
+// Health tracking
+router.get('/health-tracking', async (req, res) => {
+  try {
+    const { metric, days = 30 } = req.query;
+    
+    let patient;
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { userId: req.user._id });
+      patient = patients[0];
+    } else {
+      patient = await Patient.findOne({ userId: req.user._id });
+    }
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
+
+    // Mock health tracking data
+    const healthData = {
+      metric: metric || 'weight',
+      data: [],
+      trends: {
+        current: 70,
+        previous: 72,
+        change: -2,
+        changePercent: -2.8
+      }
+    };
+
+    // Generate mock data points
+    for (let i = days; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      
+      healthData.data.push({
+        date: date.toISOString().split('T')[0],
+        value: 70 + Math.random() * 4 - 2, // Random value around 70
+        unit: metric === 'weight' ? 'kg' : 'units'
+      });
+    }
+
+    res.json(healthData);
+  } catch (error) {
+    console.error('Get health tracking error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get health tracking data',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
 // Health goals management
 router.get('/health-goals', async (req, res) => {
   try {
-    const patient = await Patient.findOne({ userId: req.user._id });
+    let patient;
+    if (req.useMockDb) {
+      const patients = await req.mockDb.find('patients', { userId: req.user._id });
+      patient = patients[0];
+    } else {
+      patient = await Patient.findOne({ userId: req.user._id });
+    }
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
     
     res.json({
       success: true,

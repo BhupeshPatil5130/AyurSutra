@@ -213,12 +213,13 @@ class MockDatabase {
       this.appointments = [
         {
           _id: 'apt001',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           patientName: 'Amit Patel',
           practitionerName: 'Dr. Rajesh Sharma',
-          date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
-          time: '10:00',
+          appointmentDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+          startTime: '10:00',
+          endTime: '11:00',
           duration: 60,
           type: 'consultation',
           status: 'confirmed',
@@ -229,12 +230,13 @@ class MockDatabase {
         },
         {
           _id: 'apt002',
-          patientId: '507f1f77bcf86cd799439015',
-          practitionerId: '507f1f77bcf86cd799439014',
+          patientId: 'pat002',
+          practitionerId: 'prac002',
           patientName: 'Sunita Gupta',
           practitionerName: 'Dr. Priya Mehta',
-          date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Day after tomorrow
-          time: '14:30',
+          appointmentDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Day after tomorrow
+          startTime: '14:30',
+          endTime: '15:15',
           duration: 45,
           type: 'follow-up',
           status: 'confirmed',
@@ -245,12 +247,13 @@ class MockDatabase {
         },
         {
           _id: 'apt003',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           patientName: 'Amit Patel',
           practitionerName: 'Dr. Rajesh Sharma',
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last week
-          time: '11:00',
+          appointmentDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last week
+          startTime: '11:00',
+          endTime: '12:00',
           duration: 60,
           type: 'therapy',
           status: 'completed',
@@ -374,8 +377,8 @@ class MockDatabase {
       this.therapyPlans = [
         {
           _id: 'tp001',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           title: 'Stress Management & Detox Program',
           description: 'Comprehensive 21-day Panchakarma program for stress relief and detoxification',
           duration: 21,
@@ -429,8 +432,8 @@ class MockDatabase {
       this.medicalRecords = [
         {
           _id: 'mr001',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           appointmentId: 'apt003',
           date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           chiefComplaint: 'Chronic stress and fatigue',
@@ -466,6 +469,7 @@ class MockDatabase {
           message: 'Your appointment with Dr. Rajesh Sharma is tomorrow at 10:00 AM',
           type: 'appointment',
           priority: 'high',
+          isRead: false,
           read: false,
           createdAt: now
         },
@@ -476,6 +480,7 @@ class MockDatabase {
           message: 'A new patient has registered and is requesting consultation',
           type: 'patient',
           priority: 'medium',
+          isRead: false,
           read: false,
           createdAt: now
         },
@@ -486,6 +491,7 @@ class MockDatabase {
           message: 'Your therapy plan has been updated with new sessions',
           type: 'therapy',
           priority: 'medium',
+          isRead: true,
           read: true,
           createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
         }
@@ -496,8 +502,8 @@ class MockDatabase {
       this.reviews = [
         {
           _id: 'rev001',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           appointmentId: 'apt003',
           rating: 5,
           comment: 'Excellent treatment! Dr. Sharma is very knowledgeable and the therapy was very effective.',
@@ -505,8 +511,8 @@ class MockDatabase {
         },
         {
           _id: 'rev002',
-          patientId: '507f1f77bcf86cd799439015',
-          practitionerId: '507f1f77bcf86cd799439014',
+          patientId: 'pat002',
+          practitionerId: 'prac002',
           rating: 4,
           comment: 'Dr. Priya is very caring and her treatment approach is holistic. Highly recommended!',
           createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
@@ -518,8 +524,8 @@ class MockDatabase {
       this.invoices = [
         {
           _id: 'inv001',
-          patientId: '507f1f77bcf86cd799439013',
-          practitionerId: '507f1f77bcf86cd799439012',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
           appointmentId: 'apt003',
           invoiceNumber: 'INV-2024-001',
           date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -534,8 +540,10 @@ class MockDatabase {
           ],
           subtotal: 1500,
           tax: 270,
+          totalAmount: 1770,
           total: 1770,
           status: 'paid',
+          paymentStatus: 'paid',
           paymentDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
           paymentMethod: 'UPI',
           createdAt: now,

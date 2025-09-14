@@ -155,5 +155,83 @@
     "isVerified": true,
     "createdAt": "2025-09-13T18:03:25.911Z",
     "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "mock-prac-123",
+    "userId": "mock-user-123",
+    "licenseNumber": "MOCK12345",
+    "specializations": [
+      "Test Therapy",
+      "Mock Treatment",
+      "Development Testing"
+    ],
+    "experience": 5,
+    "consultationFee": 1000,
+    "location": "Test City",
+    "bio": "Mock practitioner for testing purposes",
+    "education": [
+      "Test Degree - Test University"
+    ],
+    "certifications": [
+      "Test Certification"
+    ],
+    "availability": [
+      {
+        "day": "Monday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Tuesday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Wednesday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Thursday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      },
+      {
+        "day": "Friday",
+        "slots": [
+          "09:00",
+          "10:00",
+          "11:00",
+          "14:00",
+          "15:00"
+        ]
+      }
+    ],
+    "isVerified": true,
+    "isActive": true,
+    "rating": 4.5,
+    "totalReviews": 0,
+    "createdAt": "2025-01-15T10:00:00.000Z",
+    "updatedAt": "2025-01-15T10:00:00.000Z"
   }
 ]
