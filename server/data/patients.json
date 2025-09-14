@@ -124,5 +124,288 @@
     },
     "createdAt": "2025-09-13T19:32:06.335Z",
     "updatedAt": "2025-09-13T19:32:06.335Z"
+  },
+  {
+    "_id": "pat003",
+    "userId": "507f1f77bcf86cd799439016",
+    "dateOfBirth": "1992-03-10",
+    "gender": "male",
+    "bloodGroup": "B+",
+    "height": 178,
+    "weight": 75,
+    "address": "123, MG Road, Bangalore, Karnataka - 560001",
+    "emergencyContact": {
+      "name": "Anita Kumar",
+      "relationship": "Wife",
+      "phone": "+91-9876543225",
+      "email": "anita.kumar@gmail.com"
+    },
+    "medicalHistory": [
+      "Chronic back pain",
+      "Work-related stress",
+      "Occasional headaches"
+    ],
+    "allergies": [
+      "Dust mites",
+      "Shellfish"
+    ],
+    "currentMedications": [
+      "Ashwagandha tablets - 500mg twice daily",
+      "Turmeric capsules - 300mg daily"
+    ],
+    "lifestyle": {
+      "diet": "Vegetarian",
+      "exercise": "Regular yoga and walking",
+      "smoking": false,
+      "alcohol": "Occasional",
+      "sleepHours": 7,
+      "stressLevel": "Moderate"
+    },
+    "preferences": {
+      "language": "en",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": true,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
+  },
+  {
+    "_id": "pat004",
+    "userId": "507f1f77bcf86cd799439017",
+    "dateOfBirth": "1996-07-22",
+    "gender": "female",
+    "bloodGroup": "A-",
+    "height": 165,
+    "weight": 58,
+    "address": "45, Sector 15, Gurgaon, Haryana - 122001",
+    "emergencyContact": {
+      "name": "Rajesh Sharma",
+      "relationship": "Father",
+      "phone": "+91-9876543226",
+      "email": "rajesh.sharma@gmail.com"
+    },
+    "medicalHistory": [
+      "PCOD",
+      "Anxiety",
+      "Irregular menstrual cycles"
+    ],
+    "allergies": [
+      "Dairy products",
+      "Certain preservatives"
+    ],
+    "currentMedications": [
+      "Shatavari powder - 1 tsp twice daily",
+      "Brahmi tablets - 250mg daily",
+      "Iron supplements"
+    ],
+    "lifestyle": {
+      "diet": "Vegan",
+      "exercise": "Pilates and meditation",
+      "smoking": false,
+      "alcohol": "Never",
+      "sleepHours": 6,
+      "stressLevel": "High"
+    },
+    "preferences": {
+      "language": "hi",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": false,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
+  },
+  {
+    "_id": "pat005",
+    "userId": "507f1f77bcf86cd799439018",
+    "dateOfBirth": "1979-11-05",
+    "gender": "male",
+    "bloodGroup": "AB+",
+    "height": 172,
+    "weight": 82,
+    "address": "78, Civil Lines, Jaipur, Rajasthan - 302006",
+    "emergencyContact": {
+      "name": "Sunita Singh",
+      "relationship": "Wife",
+      "phone": "+91-9876543227",
+      "email": "sunita.singh@gmail.com"
+    },
+    "medicalHistory": [
+      "Type 2 Diabetes",
+      "High cholesterol",
+      "Joint pain",
+      "Sleep apnea"
+    ],
+    "allergies": [
+      "Penicillin",
+      "Nuts"
+    ],
+    "currentMedications": [
+      "Metformin - 500mg twice daily",
+      "Guduchi tablets - 250mg daily",
+      "Triphala churna - 1 tsp at bedtime",
+      "Omega-3 supplements"
+    ],
+    "lifestyle": {
+      "diet": "Diabetic-friendly vegetarian",
+      "exercise": "Morning walks and light yoga",
+      "smoking": false,
+      "alcohol": "Never",
+      "sleepHours": 6,
+      "stressLevel": "Moderate"
+    },
+    "preferences": {
+      "language": "hi",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": true,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
+  },
+  {
+    "_id": "pat006",
+    "userId": "507f1f77bcf86cd799439019",
+    "dateOfBirth": "1990-12-18",
+    "gender": "female",
+    "bloodGroup": "O-",
+    "height": 162,
+    "weight": 55,
+    "address": "12, Marine Drive, Kochi, Kerala - 682031",
+    "emergencyContact": {
+      "name": "Arun Nair",
+      "relationship": "Husband",
+      "phone": "+91-9876543228",
+      "email": "arun.nair@gmail.com"
+    },
+    "medicalHistory": [
+      "Thyroid disorders",
+      "Chronic fatigue",
+      "Digestive issues"
+    ],
+    "allergies": [
+      "Gluten",
+      "Artificial colors"
+    ],
+    "currentMedications": [
+      "Kanchanar Guggulu - 2 tablets twice daily",
+      "Digestive enzymes",
+      "Vitamin D3 supplements"
+    ],
+    "lifestyle": {
+      "diet": "Gluten-free vegetarian",
+      "exercise": "Swimming and yoga",
+      "smoking": false,
+      "alcohol": "Never",
+      "sleepHours": 8,
+      "stressLevel": "Low"
+    },
+    "preferences": {
+      "language": "en",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": true,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
+  },
+  {
+    "_id": "pat007",
+    "userId": "507f1f77bcf86cd799439020",
+    "dateOfBirth": "1985-09-14",
+    "gender": "male",
+    "bloodGroup": "B-",
+    "height": 180,
+    "weight": 78,
+    "address": "56, Banjara Hills, Hyderabad, Telangana - 500034",
+    "emergencyContact": {
+      "name": "Lakshmi Reddy",
+      "relationship": "Mother",
+      "phone": "+91-9876543229",
+      "email": "lakshmi.reddy@gmail.com"
+    },
+    "medicalHistory": [
+      "Hypertension",
+      "Work stress",
+      "Lower back pain"
+    ],
+    "allergies": [
+      "Sulfa drugs",
+      "Pollen"
+    ],
+    "currentMedications": [
+      "Arjuna bark powder - 1 tsp twice daily",
+      "Ashwagandha capsules - 300mg daily",
+      "Calcium supplements"
+    ],
+    "lifestyle": {
+      "diet": "Non-vegetarian (limited)",
+      "exercise": "Gym and badminton",
+      "smoking": false,
+      "alcohol": "Social drinking",
+      "sleepHours": 6,
+      "stressLevel": "High"
+    },
+    "preferences": {
+      "language": "en",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": true,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
+  },
+  {
+    "_id": "pat008",
+    "userId": "507f1f77bcf86cd799439021",
+    "dateOfBirth": "1983-04-30",
+    "gender": "female",
+    "bloodGroup": "A+",
+    "height": 158,
+    "weight": 62,
+    "address": "89, FC Road, Pune, Maharashtra - 411005",
+    "emergencyContact": {
+      "name": "Suresh Joshi",
+      "relationship": "Husband",
+      "phone": "+91-9876543230",
+      "email": "suresh.joshi@gmail.com"
+    },
+    "medicalHistory": [
+      "Arthritis",
+      "Migraine headaches",
+      "Hormonal imbalance"
+    ],
+    "allergies": [
+      "Aspirin",
+      "Certain food additives"
+    ],
+    "currentMedications": [
+      "Yograj Guggulu - 2 tablets twice daily",
+      "Saraswatarishta - 15ml twice daily",
+      "Multivitamin supplements"
+    ],
+    "lifestyle": {
+      "diet": "Vegetarian with organic preference",
+      "exercise": "Yoga and walking",
+      "smoking": false,
+      "alcohol": "Never",
+      "sleepHours": 7,
+      "stressLevel": "Moderate"
+    },
+    "preferences": {
+      "language": "mr",
+      "timezone": "Asia/Kolkata",
+      "emailNotifications": true,
+      "smsNotifications": false,
+      "appointmentReminders": true
+    },
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-14T08:30:00.000Z"
   }
 ]

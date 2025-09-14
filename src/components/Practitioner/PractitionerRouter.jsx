@@ -12,6 +12,7 @@ import CommunicationMessaging from './CommunicationMessaging';
 import RevenueEarningsTracking from './RevenueEarningsTracking';
 import ReportsAnalytics from './ReportsAnalytics';
 import NotificationManagement from './NotificationManagement';
+import PractitionerDataManagement from './PractitionerDataManagement';
 
 const PractitionerRouter = () => {
   return (
@@ -29,6 +30,7 @@ const PractitionerRouter = () => {
         <Route path="revenue" element={<RevenueEarningsTracking />} />
         <Route path="analytics" element={<ReportsAnalytics />} />
         <Route path="notifications" element={<NotificationManagement />} />
+        <Route path="data-management" element={<PractitionerDataManagement />} />
       </Route>
     </Routes>
   );

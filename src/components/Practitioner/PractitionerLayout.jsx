@@ -129,6 +129,13 @@ const PractitionerLayout = () => {
       icon: Bell,
       path: '/practitioner/notifications',
       description: 'Manage notifications'
+    },
+    {
+      id: 'data-management',
+      label: 'Data Management',
+      icon: Settings,
+      path: '/practitioner/data-management',
+      description: 'Manage all data and records'
     }
   ];
 

@@ -1,4 +1,4 @@
-// Mock data for Admin components
+// Mock Admin Data Service with Indian Cultural Context
 export const mockAdminStats = {
   totalPractitioners: 45,
   pendingVerifications: 8,
@@ -9,8 +9,72 @@ export const mockAdminStats = {
   activeUsers: 1189,
   monthlyRevenue: 125000,
   systemHealth: 98.5,
-  newRegistrations: 156
+  newRegistrations: 156,
+  ayurvedicCenters: 23,
+  panchakarmaSpecialists: 15,
+  womenHealthExperts: 12,
+  onlineConsultations: 2156,
+  traditionalTreatments: 1890,
+  herbalPrescriptions: 3245
 };
+
+// Indian Admin User Profiles
+export const indianAdminProfiles = [
+  {
+    _id: "admin001",
+    userId: "507f1f77bcf86cd799439027",
+    firstName: "Rajesh",
+    lastName: "Agarwal",
+    email: "rajesh.agarwal@ayursutra.com",
+    phone: "+91-9876543215",
+    role: "Super Admin",
+    department: "Operations",
+    designation: "Chief Operations Officer",
+    address: "A-204, Sector 18, Noida, Uttar Pradesh - 201301",
+    permissions: ["all"],
+    languages: ["English", "Hindi"],
+    joinDate: "2023-01-15",
+    lastLogin: "2025-01-15T09:30:00.000Z",
+    isActive: true,
+    profileImage: "/images/admin/rajesh-agarwal.jpg"
+  },
+  {
+    _id: "admin002",
+    userId: "507f1f77bcf86cd799439028",
+    firstName: "Priya",
+    lastName: "Menon",
+    email: "priya.menon@ayursutra.com",
+    phone: "+91-9876543216",
+    role: "Admin",
+    department: "Quality Assurance",
+    designation: "Quality Manager",
+    address: "12/B, Koramangala, Bangalore, Karnataka - 560034",
+    permissions: ["practitioners", "quality", "reports"],
+    languages: ["English", "Hindi", "Malayalam", "Kannada"],
+    joinDate: "2023-03-20",
+    lastLogin: "2025-01-15T08:45:00.000Z",
+    isActive: true,
+    profileImage: "/images/admin/priya-menon.jpg"
+  },
+  {
+    _id: "admin003",
+    userId: "507f1f77bcf86cd799439029",
+    firstName: "Amit",
+    lastName: "Joshi",
+    email: "amit.joshi@ayursutra.com",
+    phone: "+91-9876543217",
+    role: "Admin",
+    department: "Customer Support",
+    designation: "Support Manager",
+    address: "301, Satellite Road, Ahmedabad, Gujarat - 380015",
+    permissions: ["patients", "support", "appointments"],
+    languages: ["English", "Hindi", "Gujarati"],
+    joinDate: "2023-05-10",
+    lastLogin: "2025-01-14T18:20:00.000Z",
+    isActive: true,
+    profileImage: "/images/admin/amit-joshi.jpg"
+  }
+];
 
 export const mockPractitioners = [
   {
@@ -459,3 +523,196 @@ export const filterData = (data, filters) => {
     });
   });
 };
+
+// Enhanced Admin Dashboard Data with Indian Context
+export const mockAdminDashboard = {
+  todayStats: {
+    newRegistrations: 23,
+    pendingVerifications: 8,
+    completedAppointments: 156,
+    totalRevenue: 234500,
+    activeUsers: 1189,
+    systemAlerts: 3
+  },
+  weeklyStats: {
+    userGrowth: 12.5,
+    appointmentGrowth: 8.3,
+    revenueGrowth: 15.2,
+    practitionerGrowth: 6.7
+  },
+  recentActivities: [
+    {
+      _id: "act001",
+      type: "practitioner_verification",
+      title: "चिकित्सक सत्यापन | Practitioner Verified",
+      message: "Dr. Arun Krishnamurthy from Chennai has been verified",
+      timestamp: "2025-01-15T10:30:00.000Z",
+      priority: "medium",
+      icon: "verified"
+    },
+    {
+      _id: "act002",
+      type: "system_alert",
+      title: "सिस्टम अलर्ट | System Alert",
+      message: "High server load detected - Auto-scaling initiated",
+      timestamp: "2025-01-15T09:45:00.000Z",
+      priority: "high",
+      icon: "warning"
+    },
+    {
+      _id: "act003",
+      type: "payment_received",
+      title: "भुगतान प्राप्त | Payment Received",
+      message: "₹25,000 commission received from Mumbai center",
+      timestamp: "2025-01-15T08:20:00.000Z",
+      priority: "low",
+      icon: "payment"
+    }
+  ],
+  regionalStats: {
+    "North India": { practitioners: 15, patients: 456, revenue: 67800 },
+    "South India": { practitioners: 18, patients: 523, revenue: 78900 },
+    "West India": { practitioners: 8, patients: 234, revenue: 34500 },
+    "East India": { practitioners: 4, patients: 134, revenue: 19800 }
+  },
+  ayurvedicSpecialties: {
+    "Panchakarma": { practitioners: 15, appointments: 234, satisfaction: 4.8 },
+    "Women's Health": { practitioners: 12, appointments: 189, satisfaction: 4.7 },
+    "Digestive Health": { practitioners: 10, appointments: 156, satisfaction: 4.6 },
+    "Mental Health": { practitioners: 8, appointments: 123, satisfaction: 4.9 }
+  }
+};
+
+// Mock Admin Services with Indian Cultural Context
+export const mockAdminServices = {
+  // Get admin dashboard data
+  getDashboardData: async (adminId) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockAdminDashboard;
+  },
+
+  // Get admin profile
+  getAdminProfile: async (adminId) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return indianAdminProfiles.find(admin => admin._id === adminId) || indianAdminProfiles[0];
+  },
+
+  // Verify practitioner
+  verifyPractitioner: async (practitionerId, adminId, decision) => {
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return {
+      success: true,
+      message: decision === 'approve' 
+        ? "चिकित्सक सत्यापित | Practitioner verified successfully"
+        : "चिकित्सक अस्वीकृत | Practitioner verification rejected"
+    };
+  },
+
+  // Get system analytics
+  getSystemAnalytics: async (period) => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    return {
+      ...mockSystemAnalytics,
+      ayurvedicTrends: {
+        panchakarmaGrowth: 15.3,
+        herbalMedicineGrowth: 12.8,
+        onlineConsultationGrowth: 25.6,
+        traditionalTherapyGrowth: 8.9
+      },
+      regionalPerformance: mockAdminDashboard.regionalStats
+    };
+  },
+
+  // Manage user roles
+  updateUserRole: async (userId, newRole, adminId) => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return {
+      success: true,
+      message: "उपयोगकर्ता भूमिका अपडेट | User role updated successfully"
+    };
+  },
+
+  // Generate reports
+  generateReport: async (reportType, filters) => {
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    return {
+      success: true,
+      reportId: `report_${Date.now()}`,
+      message: "रिपोर्ट तैयार | Report generated successfully",
+      downloadUrl: `/reports/download/${reportType}_${Date.now()}.pdf`
+    };
+  },
+
+  // System health check
+  getSystemHealth: async () => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return {
+      overall: 98.5,
+      database: 99.2,
+      api: 98.8,
+      storage: 97.9,
+      network: 98.1,
+      ayurvedicServices: 99.0,
+      paymentGateway: 98.3
+    };
+  },
+
+  // Send notifications
+  sendNotification: async (recipients, message, type) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return {
+      success: true,
+      message: "सूचना भेजी गई | Notification sent successfully",
+      recipientCount: recipients.length
+    };
+  }
+};
+
+// Ayurvedic Quality Standards for Admin
+export const ayurvedicQualityStandards = {
+  practitionerRequirements: {
+    minimumEducation: ["BAMS"],
+    requiredCertifications: ["Valid License", "State Registration"],
+    experienceMinimum: 2,
+    continuingEducation: "20 hours annually",
+    languageRequirements: ["Hindi or Regional Language", "Basic English"]
+  },
+  treatmentStandards: {
+    consultationMinimum: 30,
+    followUpRequired: true,
+    documentationRequired: true,
+    patientConsentRequired: true,
+    traditionalMethodsPreferred: true
+  },
+  facilityStandards: {
+    hygieneCertification: "Required",
+    ayurvedicEquipment: "Traditional + Modern",
+    herbalMedicineStorage: "Proper Storage Conditions",
+    emergencyProtocols: "First Aid + Referral System"
+  }
+};
+
+// Indian Regulatory Compliance
+export const indianRegulatoryCompliance = {
+  ccim: {
+    name: "Central Council of Indian Medicine",
+    requirements: ["BAMS Registration", "Annual Renewal", "Ethical Guidelines"],
+    website: "https://ccim.gov.in"
+  },
+  stateBoards: {
+    requirements: ["State License", "Local Registration", "Tax Compliance"],
+    renewalPeriod: "Annual"
+  },
+  drugLicensing: {
+    required: "For Herbal Medicine Dispensing",
+    authority: "State Drug Control Department",
+    validity: "5 Years"
+  },
+  gst: {
+    registration: "Required for Revenue > ₹20 Lakhs",
+    rate: "5% for Medical Services",
+    filing: "Monthly/Quarterly"
+  }
+};
+
+export default mockAdminServices;

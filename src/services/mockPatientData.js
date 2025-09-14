@@ -1,20 +1,130 @@
 // Mock Patient Data Service
 // Provides realistic sample data for patient dashboard when API is unavailable
 
-export const mockPatientData = {
-  patient: {
+// Enhanced Indian Patient Profiles
+export const indianPatientProfiles = [
+  {
     _id: "pat001",
     firstName: "Arjun",
     lastName: "Sharma",
-    email: "arjun.sharma@email.com",
+    email: "arjun.sharma@ayursutra.com",
     phone: "+91-9876543210",
     dateOfBirth: "1988-05-15",
     gender: "male",
     bloodGroup: "O+",
     height: 175,
     weight: 70,
-    avatar: null
+    address: "45, Lajpat Nagar, New Delhi - 110024",
+    avatar: null,
+    constitution: "Vata-Pitta",
+    occupation: "Software Engineer"
   },
+  {
+    _id: "pat003",
+    firstName: "Ravi",
+    lastName: "Kumar",
+    email: "ravi.kumar@ayursutra.com",
+    phone: "+91-9876543215",
+    dateOfBirth: "1992-03-10",
+    gender: "male",
+    bloodGroup: "B+",
+    height: 178,
+    weight: 75,
+    address: "123, MG Road, Bangalore, Karnataka - 560001",
+    avatar: null,
+    constitution: "Pitta-Kapha",
+    occupation: "Marketing Manager"
+  },
+  {
+    _id: "pat004",
+    firstName: "Priya",
+    lastName: "Sharma",
+    email: "priya.sharma@ayursutra.com",
+    phone: "+91-9876543216",
+    dateOfBirth: "1996-07-22",
+    gender: "female",
+    bloodGroup: "A-",
+    height: 165,
+    weight: 58,
+    address: "45, Sector 15, Gurgaon, Haryana - 122001",
+    avatar: null,
+    constitution: "Vata-Pitta",
+    occupation: "Graphic Designer"
+  },
+  {
+    _id: "pat005",
+    firstName: "Arjun",
+    lastName: "Singh",
+    email: "arjun.singh@ayursutra.com",
+    phone: "+91-9876543217",
+    dateOfBirth: "1979-11-05",
+    gender: "male",
+    bloodGroup: "AB+",
+    height: 172,
+    weight: 82,
+    address: "78, Civil Lines, Jaipur, Rajasthan - 302006",
+    avatar: null,
+    constitution: "Kapha-Pitta",
+    occupation: "Business Owner"
+  },
+  {
+    _id: "pat006",
+    firstName: "Kavya",
+    lastName: "Nair",
+    email: "kavya.nair@ayursutra.com",
+    phone: "+91-9876543218",
+    dateOfBirth: "1990-12-18",
+    gender: "female",
+    bloodGroup: "O-",
+    height: 162,
+    weight: 55,
+    address: "12, Marine Drive, Kochi, Kerala - 682031",
+    avatar: null,
+    constitution: "Vata-Kapha",
+    occupation: "Yoga Instructor"
+  },
+  {
+    _id: "pat007",
+    firstName: "Vikram",
+    lastName: "Reddy",
+    email: "vikram.reddy@ayursutra.com",
+    phone: "+91-9876543219",
+    dateOfBirth: "1985-09-14",
+    gender: "male",
+    bloodGroup: "B-",
+    height: 180,
+    weight: 78,
+    address: "56, Banjara Hills, Hyderabad, Telangana - 500034",
+    avatar: null,
+    constitution: "Pitta-Vata",
+    occupation: "Financial Analyst"
+  },
+  {
+    _id: "pat008",
+    firstName: "Meera",
+    lastName: "Joshi",
+    email: "meera.joshi@ayursutra.com",
+    phone: "+91-9876543220",
+    dateOfBirth: "1983-04-30",
+    gender: "female",
+    bloodGroup: "A+",
+    height: 158,
+    weight: 62,
+    address: "89, FC Road, Pune, Maharashtra - 411005",
+    avatar: null,
+    constitution: "Vata-Pitta",
+    occupation: "Teacher"
+  }
+];
+
+// Get random patient profile
+const getRandomPatient = () => {
+  const randomIndex = Math.floor(Math.random() * indianPatientProfiles.length);
+  return indianPatientProfiles[randomIndex];
+};
+
+export const mockPatientData = {
+  patient: getRandomPatient(),
 
   // Dashboard overview data
   dashboardStats: {
@@ -29,133 +139,192 @@ export const mockPatientData = {
     }
   },
 
-  // Health vitals
+  // Health vitals with Ayurvedic parameters
   vitals: {
     temperature: "98.4°F",
     bloodPressure: "118/76",
     weight: "70 kg",
     heartRate: "72 bpm",
     energyLevel: 4,
+    doshaBalance: {
+      vata: "Balanced",
+      pitta: "Slightly Elevated", 
+      kapha: "Balanced"
+    },
+    agni: "Strong", // Digestive fire
+    ojas: "Good", // Vital essence
+    prana: "Flowing well", // Life force
     lastUpdated: "2025-09-14T06:00:00Z"
   },
 
-  // Today's schedule
+  // Today's schedule with Indian treatments
   todaySchedule: [
     {
       id: "sch001",
-      title: "Morning Meditation Session",
-      time: "07:00 AM",
-      practitioner: "Yoga Instructor Maya",
+      title: "प्रातःकालीन प्राणायाम (Morning Pranayama)",
+      time: "06:30 AM",
+      practitioner: "Yoga Acharya Ramesh",
       status: "completed",
-      type: "therapy"
+      type: "therapy",
+      description: "Anulom Vilom & Bhramari Pranayama"
     },
     {
       id: "sch002", 
-      title: "Ayurvedic Consultation",
+      title: "पंचकर्म परामर्श (Panchakarma Consultation)",
       time: "10:00 AM",
-      practitioner: "Dr. Priya Patel",
+      practitioner: "Dr. Priya Patel (BAMS, MD)",
       status: "confirmed",
-      type: "consultation"
+      type: "consultation",
+      description: "Vata dosha assessment & treatment planning"
     },
     {
       id: "sch003",
-      title: "Herbal Medicine Pickup",
-      time: "03:00 PM", 
-      practitioner: "Pharmacy",
+      title: "अभ्यंग मसाज (Abhyanga Massage)",
+      time: "02:00 PM", 
+      practitioner: "Therapist Sunita",
+      status: "confirmed",
+      type: "therapy",
+      description: "Full body oil massage with sesame oil"
+    },
+    {
+      id: "sch004",
+      title: "आयुर्वेदिक दवा (Ayurvedic Medicine Pickup)",
+      time: "04:00 PM", 
+      practitioner: "Ayurvedic Pharmacy",
       status: "pending",
-      type: "medication"
+      type: "medication",
+      description: "Ashwagandha, Brahmi, Triphala churna"
     }
   ],
 
-  // Current treatment plan
+  // Current Ayurvedic treatment plan
   currentTreatment: {
-    name: "Stress Management & Digestive Health Program",
+    name: "पंचकर्म डिटॉक्स & स्ट्रेस मैनेजमेंट प्रोग्राम (Panchakarma Detox & Stress Management)",
     progress: 75,
     sessionsLeft: 4,
     milestones: 3,
     startDate: "2025-08-01",
     endDate: "2025-10-15",
+    constitution: "Vata-Pitta",
+    primaryDosha: "Vata",
     nextSteps: [
-      "Complete daily pranayama practice",
-      "Follow prescribed diet plan",
-      "Take herbal supplements as directed",
-      "Attend weekly consultation sessions"
+      "Continue daily Pranayama (Anulom Vilom) for 15 minutes",
+      "Follow Vata-pacifying diet with warm, cooked foods",
+      "Take prescribed Ayurvedic medicines: Ashwagandha, Brahmi, Triphala",
+      "Attend weekly Panchakarma sessions",
+      "Practice Yoga Nidra for deep relaxation"
+    ],
+    treatments: [
+      "Abhyanga (Oil Massage)",
+      "Shirodhara (Oil Pouring Therapy)",
+      "Basti (Medicated Enema)",
+      "Pranayama & Meditation"
     ]
   },
 
-  // Recent notifications
+  // Recent notifications with Indian context
   notifications: [
     {
       id: "not001",
       type: "appointment",
-      title: "Appointment Reminder",
-      message: "Your consultation with Dr. Priya Patel is scheduled for tomorrow at 10:00 AM",
+      title: "अपॉइंटमेंट रिमाइंडर (Appointment Reminder)",
+      message: "Your Panchakarma consultation with Dr. Priya Patel is scheduled for tomorrow at 10:00 AM",
       time: "2 hours ago",
       read: false
     },
     {
       id: "not002", 
       type: "message",
-      title: "New Message from Dr. Patel",
-      message: "Please continue your current meditation routine. Great progress!",
+      title: "डॉक्टर का संदेश (Doctor's Message)",
+      message: "Continue your Pranayama practice. Your Vata dosha is showing excellent balance. Keep up the good work!",
       time: "1 day ago",
       read: false
     },
     {
       id: "not003",
       type: "reminder", 
-      title: "Medicine Reminder",
-      message: "Time to take your evening Triphala supplement",
+      title: "दवा रिमाइंडर (Medicine Reminder)",
+      message: "Time to take your evening Triphala churna with warm water",
       time: "1 day ago",
       read: true
     },
     {
       id: "not004",
       type: "payment",
-      title: "Payment Confirmation",
-      message: "Payment of ₹2,500 for consultation has been processed successfully",
+      title: "भुगतान पुष्टि (Payment Confirmation)",
+      message: "Payment of ₹2,500 for Ayurvedic consultation has been processed via UPI",
       time: "2 days ago", 
+      read: true
+    },
+    {
+      id: "not005",
+      type: "reminder",
+      title: "योग सत्र (Yoga Session)",
+      message: "Your morning Surya Namaskara session starts in 30 minutes",
+      time: "3 hours ago",
       read: true
     }
   ],
 
-  // Recent activity
+  // Recent activity with Indian treatments
   recentActivity: [
     {
-      action: "Completed Yoga Session",
-      details: "45-minute Hatha Yoga with Instructor Maya",
-      timestamp: "Today, 7:45 AM"
+      action: "Completed Surya Namaskara",
+      details: "12 rounds of Sun Salutation with Pranayama",
+      timestamp: "Today, 6:45 AM"
     },
     {
-      action: "Updated Health Vitals",
-      details: "Recorded weight, blood pressure, and energy levels",
-      timestamp: "Yesterday, 8:00 AM"
+      action: "Panchakarma Session Completed",
+      details: "Abhyanga massage with warm sesame oil - feeling very relaxed",
+      timestamp: "Yesterday, 2:00 PM"
     },
     {
-      action: "Submitted Feedback",
-      details: "5-star review for Dr. Rajesh Kumar's consultation",
+      action: "Dosha Assessment Updated",
+      details: "Vata dosha showing improvement, Pitta slightly elevated",
+      timestamp: "Yesterday, 10:30 AM"
+    },
+    {
+      action: "Ayurvedic Medicine Taken",
+      details: "Morning dose: Ashwagandha 500mg, Brahmi 250mg",
+      timestamp: "Today, 8:00 AM"
+    },
+    {
+      action: "Meditation Session",
+      details: "20-minute Vipassana meditation - achieved deep stillness",
+      timestamp: "Yesterday, 7:00 PM"
+    },
+    {
+      action: "Diet Plan Updated",
+      details: "Added more Vata-pacifying foods: warm soups, ghee, dates",
       timestamp: "2 days ago"
-    },
-    {
-      action: "Booked Appointment",
-      details: "Scheduled follow-up consultation with Dr. Priya Patel",
-      timestamp: "3 days ago"
     }
   ],
 
-  // Health tips
+  // Indian Ayurvedic Health Tips
   healthTips: [
     {
-      title: "Morning Hydration",
-      description: "Start your day with warm water and lemon to boost digestion and metabolism"
+      title: "प्रातःकाल जल सेवन (Morning Hydration)",
+      description: "Start your day with warm water mixed with lemon and honey to boost Agni (digestive fire) and cleanse Ama (toxins)"
     },
     {
-      title: "Mindful Eating",
-      description: "Eat slowly and chew thoroughly to improve nutrient absorption and reduce digestive stress"
+      title: "सात्विक आहार (Sattvic Diet)",
+      description: "Include fresh, seasonal, and locally grown foods. Favor warm, cooked meals over cold or processed foods for better digestion"
     },
     {
-      title: "Evening Routine",
-      description: "Practice gentle stretching or meditation before bed to improve sleep quality"
+      title: "दिनचर्या (Daily Routine)",
+      description: "Follow a consistent daily routine aligned with natural circadian rhythms. Wake up before sunrise and sleep by 10 PM"
+    },
+    {
+      title: "प्राणायाम (Pranayama)",
+      description: "Practice breathing exercises like Anulom Vilom and Bhramari for 10-15 minutes daily to balance Vata dosha"
+    },
+    {
+      title: "तेल मालिश (Oil Massage)",
+      description: "Regular self-massage with warm sesame or coconut oil improves circulation and calms the nervous system"
+    },
+    {
+      title: "त्रिफला सेवन (Triphala Consumption)",
+      description: "Take Triphala churna with warm water before bed to support digestion and natural detoxification"
     }
   ],
 
@@ -171,13 +340,15 @@ export const mockPatientData = {
       practitionerId: {
         _id: "prac001",
         userId: {
-          firstName: "Priya",
+          firstName: "Dr. Priya",
           lastName: "Patel",
           email: "priya.patel@ayursutra.com",
           phone: "+91-9876543221"
         },
-        specializations: ["Panchakarma", "Digestive Health"],
-        consultationFee: 2500
+        specializations: ["Panchakarma", "Digestive Health", "Vata Disorders"],
+        consultationFee: 2500,
+        qualifications: ["BAMS", "MD (Panchakarma)"],
+        experience: 12
       },
       notes: "Follow-up consultation for stress management program",
       symptoms: ["Stress", "Digestive issues"],

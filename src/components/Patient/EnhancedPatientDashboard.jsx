@@ -48,14 +48,7 @@ const EnhancedPatientDashboard = () => {
       action: () => navigate('/patient/appointments'),
       description: 'Schedule with practitioner'
     },
-    { 
-      title: 'Find Practitioner', 
-      icon: Stethoscope, 
-      color: 'bg-gradient-to-br from-emerald-500 to-emerald-600', 
-      hoverColor: 'hover:from-emerald-600 hover:to-emerald-700',
-      action: () => navigate('/patient/practitioners'),
-      description: 'Search specialists'
-    },
+   
     { 
       title: 'Therapy Plans', 
       icon: Heart, 
@@ -80,14 +73,14 @@ const EnhancedPatientDashboard = () => {
       action: () => navigate('/patient/messages'),
       description: 'Chat with doctors'
     },
-    { 
-      title: 'Payments', 
-      icon: DollarSign, 
-      color: 'bg-gradient-to-br from-amber-500 to-amber-600', 
-      hoverColor: 'hover:from-amber-600 hover:to-amber-700',
-      action: () => navigate('/patient/payments'),
-      description: 'Billing & payments'
-    }
+    // { 
+    //   title: 'Payments', 
+    //   icon: DollarSign, 
+    //   color: 'bg-gradient-to-br from-amber-500 to-amber-600', 
+    //   hoverColor: 'hover:from-amber-600 hover:to-amber-700',
+    //   action: () => navigate('/patient/payments'),
+    //   description: 'Billing & payments'
+    // }
   ];
 
   if (loading) {

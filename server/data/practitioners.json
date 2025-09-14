@@ -8,73 +8,66 @@
       "Stress Management",
       "Detoxification"
     ],
+    "qualifications": [
+      "BAMS",
+      "MD Ayurveda",
+      "Panchakarma Specialist"
+    ],
     "experience": 10,
     "consultationFee": 1500,
     "location": "Mumbai",
-    "bio": "Experienced Ayurvedic practitioner specializing in Panchakarma therapies",
-    "education": [
-      "BAMS - Mumbai University",
-      "MD Ayurveda - Gujarat Ayurved University"
-    ],
-    "certifications": [
-      "Panchakarma Specialist",
-      "Ayurvedic Medicine"
-    ],
-    "availability": [
-      {
-        "day": "Monday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Tuesday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Wednesday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Thursday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Friday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      }
-    ],
     "rating": 4.8,
     "totalReviews": 156,
+    "availability": {
+      "schedule": {
+        "monday": {
+          "start": "09:00",
+          "end": "17:00",
+          "available": true
+        },
+        "tuesday": {
+          "start": "09:00",
+          "end": "17:00",
+          "available": true
+        },
+        "wednesday": {
+          "start": "09:00",
+          "end": "17:00",
+          "available": true
+        },
+        "thursday": {
+          "start": "09:00",
+          "end": "17:00",
+          "available": true
+        },
+        "friday": {
+          "start": "09:00",
+          "end": "17:00",
+          "available": true
+        },
+        "saturday": {
+          "start": "10:00",
+          "end": "14:00",
+          "available": true
+        },
+        "sunday": {
+          "start": "00:00",
+          "end": "00:00",
+          "available": false
+        }
+      },
+      "timezone": "Asia/Calcutta",
+      "updatedAt": "2025-09-14T04:26:38.070Z"
+    },
+    "languages": [
+      "English",
+      "Hindi"
+    ],
+    "constitution": "Vata-Pitta",
+    "treatmentApproach": "Traditional Panchakarma with modern lifestyle integration",
+    "bio": "Experienced Ayurvedic practitioner specializing in Panchakarma treatments and stress management.",
     "isVerified": true,
+    "isActive": true,
     "createdAt": "2025-09-13T18:03:25.911Z",
     "updatedAt": "2025-09-13T18:03:25.911Z"
   },
@@ -83,155 +76,501 @@
     "userId": "507f1f77bcf86cd799439014",
     "licenseNumber": "AYU67890",
     "specializations": [
-      "Ayurvedic Medicine",
-      "Women Health",
-      "Digestive Disorders"
+      "Digestive Health",
+      "Women's Health",
+      "Herbal Medicine"
+    ],
+    "qualifications": [
+      "BAMS",
+      "MD Ayurveda",
+      "Women's Health Specialist"
     ],
     "experience": 8,
     "consultationFee": 1200,
     "location": "Delhi",
-    "bio": "Dedicated to womens health and digestive wellness through Ayurveda",
-    "education": [
-      "BAMS - Delhi University",
-      "PG Diploma in Ayurvedic Medicine"
-    ],
-    "certifications": [
-      "Ayurvedic Medicine",
-      "Womens Health Specialist"
-    ],
-    "availability": [
-      {
-        "day": "Monday",
-        "slots": [
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00",
-          "16:00"
-        ]
-      },
-      {
-        "day": "Tuesday",
-        "slots": [
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00",
-          "16:00"
-        ]
-      },
-      {
-        "day": "Wednesday",
-        "slots": [
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00",
-          "16:00"
-        ]
-      },
-      {
-        "day": "Thursday",
-        "slots": [
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00",
-          "16:00"
-        ]
-      },
-      {
-        "day": "Saturday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "12:00"
-        ]
-      }
-    ],
     "rating": 4.6,
     "totalReviews": 89,
+    "availability": {
+      "Tuesday": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "15:00"
+      ],
+      "Wednesday": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "15:00"
+      ],
+      "Thursday": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "15:00"
+      ],
+      "Friday": [
+        "10:00",
+        "11:00",
+        "14:00",
+        "15:00"
+      ],
+      "Saturday": [
+        "09:00",
+        "10:00",
+        "11:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi"
+    ],
+    "constitution": "Pitta-Kapha",
+    "treatmentApproach": "Holistic women's wellness through Ayurvedic principles",
+    "bio": "Specialist in digestive health and women's wellness through Ayurvedic medicine.",
     "isVerified": true,
+    "isActive": true,
     "createdAt": "2025-09-13T18:03:25.911Z",
     "updatedAt": "2025-09-13T18:03:25.911Z"
   },
   {
-    "_id": "mock-prac-123",
-    "userId": "mock-user-123",
-    "licenseNumber": "MOCK12345",
+    "_id": "prac003",
+    "userId": "507f1f77bcf86cd799439022",
+    "licenseNumber": "AYU11111",
     "specializations": [
-      "Test Therapy",
-      "Mock Treatment",
-      "Development Testing"
+      "Panchakarma",
+      "Detoxification",
+      "Chronic Diseases",
+      "Rejuvenation Therapy"
     ],
-    "experience": 5,
-    "consultationFee": 1000,
-    "location": "Test City",
-    "bio": "Mock practitioner for testing purposes",
-    "education": [
-      "Test Degree - Test University"
+    "qualifications": [
+      "BAMS",
+      "MD (Panchakarma)",
+      "PhD (Ayurveda)",
+      "Certified Yoga Instructor"
     ],
-    "certifications": [
-      "Test Certification"
+    "experience": 15,
+    "consultationFee": 3000,
+    "location": "Chennai",
+    "rating": 4.9,
+    "totalReviews": 234,
+    "availability": {
+      "Monday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "16:00",
+        "17:00"
+      ],
+      "Tuesday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "16:00",
+        "17:00"
+      ],
+      "Wednesday": [
+        "08:00",
+        "09:00",
+        "10:00"
+      ],
+      "Thursday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "16:00",
+        "17:00"
+      ],
+      "Friday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "16:00",
+        "17:00"
+      ],
+      "Saturday": [
+        "08:00",
+        "09:00",
+        "10:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi",
+      "Tamil",
+      "Sanskrit"
     ],
-    "availability": [
-      {
-        "day": "Monday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Tuesday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Wednesday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Thursday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      },
-      {
-        "day": "Friday",
-        "slots": [
-          "09:00",
-          "10:00",
-          "11:00",
-          "14:00",
-          "15:00"
-        ]
-      }
+    "constitution": "Kapha-Pitta",
+    "treatmentApproach": "Classical Panchakarma with personalized dosha-based treatments",
+    "bio": "Senior Ayurvedic physician with 15+ years specializing in authentic Panchakarma detoxification and rejuvenation therapies.",
+    "achievements": [
+      "Gold Medalist in Panchakarma",
+      "Published researcher in Ayurvedic journals"
+    ],
+    "treatmentSpecialties": [
+      "Abhyanga",
+      "Shirodhara",
+      "Basti",
+      "Nasya",
+      "Raktamokshana"
     ],
     "isVerified": true,
     "isActive": true,
-    "rating": 4.5,
-    "totalReviews": 0,
-    "createdAt": "2025-01-15T10:00:00.000Z",
-    "updatedAt": "2025-01-15T10:00:00.000Z"
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "prac004",
+    "userId": "507f1f77bcf86cd799439023",
+    "licenseNumber": "AYU22222",
+    "specializations": [
+      "Women's Health",
+      "Gynecology",
+      "PCOD/PCOS",
+      "Fertility",
+      "Prenatal Care"
+    ],
+    "qualifications": [
+      "BAMS",
+      "MS (Ayurveda Gynecology)",
+      "Diploma in Yoga",
+      "Certified Lactation Consultant"
+    ],
+    "experience": 12,
+    "consultationFee": 2800,
+    "location": "Jaipur",
+    "rating": 4.8,
+    "totalReviews": 187,
+    "availability": {
+      "Monday": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "15:00",
+        "16:00"
+      ],
+      "Tuesday": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "15:00",
+        "16:00"
+      ],
+      "Wednesday": [
+        "09:00",
+        "10:00",
+        "11:00"
+      ],
+      "Thursday": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "15:00",
+        "16:00"
+      ],
+      "Friday": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "15:00",
+        "16:00"
+      ],
+      "Saturday": [
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi",
+      "Rajasthani"
+    ],
+    "constitution": "Pitta-Vata",
+    "treatmentApproach": "Comprehensive women's health through Ayurvedic gynecology and lifestyle counseling",
+    "bio": "Specialized Ayurvedic gynecologist with expertise in treating PCOD, fertility issues, and comprehensive women's health.",
+    "achievements": [
+      "Women's Health Excellence Award",
+      "Research in Ayurvedic Gynecology"
+    ],
+    "treatmentSpecialties": [
+      "Uttarbasti",
+      "Yoni Prakshalan",
+      "Herbal Formulations",
+      "Lifestyle Counseling"
+    ],
+    "isVerified": true,
+    "isActive": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "prac005",
+    "userId": "507f1f77bcf86cd799439024",
+    "licenseNumber": "AYU33333",
+    "specializations": [
+      "Neurological Disorders",
+      "Mental Health",
+      "Stress Management",
+      "Meditation",
+      "Cognitive Therapy"
+    ],
+    "qualifications": [
+      "BAMS",
+      "MD (Manas Roga)",
+      "Diploma in Psychology",
+      "Certified Meditation Teacher"
+    ],
+    "experience": 18,
+    "consultationFee": 3500,
+    "location": "Kochi",
+    "rating": 4.9,
+    "totalReviews": 298,
+    "availability": {
+      "Monday": [
+        "07:00",
+        "08:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "Tuesday": [
+        "07:00",
+        "08:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "Wednesday": [
+        "07:00",
+        "08:00",
+        "17:00",
+        "18:00"
+      ],
+      "Thursday": [
+        "07:00",
+        "08:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "Friday": [
+        "07:00",
+        "08:00",
+        "17:00",
+        "18:00",
+        "19:00"
+      ],
+      "Saturday": [
+        "07:00",
+        "08:00",
+        "09:00"
+      ],
+      "Sunday": [
+        "07:00",
+        "08:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi",
+      "Malayalam",
+      "Tamil"
+    ],
+    "constitution": "Vata-Kapha",
+    "treatmentApproach": "Integrated approach combining Ayurvedic psychiatry with modern therapeutic techniques",
+    "bio": "Senior consultant in Ayurvedic psychiatry and neurology with 18+ years of experience in treating mental health conditions.",
+    "achievements": [
+      "Pioneer in Ayurvedic Mental Health",
+      "International speaker on Manas Roga"
+    ],
+    "treatmentSpecialties": [
+      "Satvavajaya Chikitsa",
+      "Medhya Rasayana",
+      "Panchakarma for Mental Health",
+      "Meditation Therapy"
+    ],
+    "isVerified": true,
+    "isActive": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "prac006",
+    "userId": "507f1f77bcf86cd799439025",
+    "licenseNumber": "AYU44444",
+    "specializations": [
+      "Pediatric Ayurveda",
+      "Child Health",
+      "Growth & Development",
+      "Immunity Building",
+      "Nutrition"
+    ],
+    "qualifications": [
+      "BAMS",
+      "MD (Kaumarbhritya)",
+      "Certified Pediatric Nutritionist",
+      "Child Psychology Certificate"
+    ],
+    "experience": 10,
+    "consultationFee": 2200,
+    "location": "Pune",
+    "rating": 4.7,
+    "totalReviews": 145,
+    "availability": {
+      "Monday": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "16:00",
+        "17:00"
+      ],
+      "Tuesday": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "16:00",
+        "17:00"
+      ],
+      "Wednesday": [
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "Thursday": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "16:00",
+        "17:00"
+      ],
+      "Friday": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "16:00",
+        "17:00"
+      ],
+      "Saturday": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "Sunday": [
+        "10:00",
+        "11:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi",
+      "Marathi"
+    ],
+    "constitution": "Kapha-Pitta",
+    "treatmentApproach": "Gentle, child-friendly Ayurvedic treatments focusing on natural immunity and healthy growth",
+    "bio": "Dedicated pediatric Ayurvedic specialist with expertise in child health, growth disorders, and immunity building.",
+    "achievements": [
+      "Best Pediatric Ayurveda Practitioner Award",
+      "Child Health Research Publications"
+    ],
+    "treatmentSpecialties": [
+      "Lehana (Immunity Boosters)",
+      "Gentle Panchakarma for Children",
+      "Nutritional Counseling",
+      "Growth Therapy"
+    ],
+    "isVerified": true,
+    "isActive": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
+  },
+  {
+    "_id": "prac007",
+    "userId": "507f1f77bcf86cd799439026",
+    "licenseNumber": "AYU55555",
+    "specializations": [
+      "Orthopedics",
+      "Joint Disorders",
+      "Sports Medicine",
+      "Pain Management",
+      "Rehabilitation"
+    ],
+    "qualifications": [
+      "BAMS",
+      "MS (Shalya Tantra)",
+      "Diploma in Sports Medicine",
+      "Certified Physiotherapist"
+    ],
+    "experience": 14,
+    "consultationFee": 2600,
+    "location": "Lucknow",
+    "rating": 4.8,
+    "totalReviews": 203,
+    "availability": {
+      "Monday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "15:00",
+        "16:00"
+      ],
+      "Tuesday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "15:00",
+        "16:00"
+      ],
+      "Wednesday": [
+        "08:00",
+        "09:00",
+        "10:00"
+      ],
+      "Thursday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "15:00",
+        "16:00"
+      ],
+      "Friday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "15:00",
+        "16:00"
+      ],
+      "Saturday": [
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00"
+      ]
+    },
+    "languages": [
+      "English",
+      "Hindi",
+      "Urdu"
+    ],
+    "constitution": "Vata-Pitta",
+    "treatmentApproach": "Comprehensive orthopedic care combining Ayurvedic treatments with modern rehabilitation techniques",
+    "bio": "Expert in Ayurvedic orthopedics and sports medicine with 14+ years of experience in treating joint disorders and sports injuries.",
+    "achievements": [
+      "Sports Medicine Excellence Award",
+      "Orthopedic Research Publications"
+    ],
+    "treatmentSpecialties": [
+      "Janu Basti",
+      "Kati Basti",
+      "Agnikarma",
+      "Therapeutic Massage",
+      "Joint Mobilization"
+    ],
+    "isVerified": true,
+    "isActive": true,
+    "createdAt": "2025-09-13T18:03:25.911Z",
+    "updatedAt": "2025-09-13T18:03:25.911Z"
   }
 ]

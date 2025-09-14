@@ -174,6 +174,16 @@ const AdminLayout = () => {
       color: 'text-slate-600',
       bgColor: 'bg-slate-50',
       borderColor: 'border-slate-200'
+    },
+    {
+      id: 'data-management',
+      label: 'Data Management',
+      icon: Database,
+      component: () => import('./AdminDataManagement').then(module => module.default),
+      description: 'Comprehensive data management system',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200'
     }
   ];
 

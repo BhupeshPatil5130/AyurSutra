@@ -61,12 +61,7 @@ const PatientLayout = () => {
       icon: Calendar,
       current: location.pathname === '/patient/appointments'
     },
-    {
-      name: 'Find Practitioners',
-      href: '/patient/practitioners',
-      icon: Search,
-      current: location.pathname === '/patient/practitioners'
-    },
+   
     {
       name: 'Therapy Plans',
       href: '/patient/therapy-plans',
@@ -91,12 +86,7 @@ const PatientLayout = () => {
       icon: MessageSquare,
       current: location.pathname === '/patient/messages'
     },
-    {
-      name: 'Payments & Billing',
-      href: '/patient/payments',
-      icon: CreditCard,
-      current: location.pathname === '/patient/payments'
-    },
+  
     {
       name: 'Feedback & Reviews',
       href: '/patient/feedback',
@@ -108,6 +98,12 @@ const PatientLayout = () => {
       href: '/patient/documents',
       icon: Folder,
       current: location.pathname === '/patient/documents'
+    },
+    {
+      name: 'Data Management',
+      href: '/patient/data-management',
+      icon: Settings,
+      current: location.pathname === '/patient/data-management'
     },
     {
       name: 'Notifications',

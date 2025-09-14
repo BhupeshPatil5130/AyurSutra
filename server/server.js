@@ -14,6 +14,7 @@ import patientRoutes from './routes/patient.js';
 import notificationRoutes from './routes/notifications.js';
 import uploadRoutes from './routes/upload.js';
 import therapyRoutes from './routes/therapy.js';
+import dataRoutes from './routes/dataRoutes.js';
 
 // Import middleware
 import { handleUploadError } from './middleware/upload.js';
@@ -134,6 +135,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/therapies', therapyRoutes);
+app.use('/api/data', dataRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -159,6 +161,7 @@ app.get('/api', (req, res) => {
       notifications: '/api/notifications - Notification management',
       upload: '/api/upload - File upload and storage',
       therapies: '/api/therapies - Therapy management and scheduling',
+      data: '/api/data - Comprehensive data management system',
       health: '/api/health - API health check'
     },
     features: [
@@ -186,6 +189,7 @@ app.use('*', (req, res) => {
       '/api/notifications',
       '/api/upload',
       '/api/therapies',
+      '/api/data',
       '/api/health'
     ]
   });
@@ -195,7 +199,7 @@ app.use('*', (req, res) => {
 app.use(handleUploadError);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 5005;
 server.listen(PORT, () => {
   console.log(`🚀 Panchakarma API Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);

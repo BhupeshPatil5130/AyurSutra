@@ -19,7 +19,7 @@ const EnhancedPatientProfile = () => {
     { id: 'medical', name: 'Medical History', icon: Heart },
     { id: 'emergency', name: 'Emergency Contact', icon: Phone },
     { id: 'preferences', name: 'Preferences', icon: Settings },
-    { id: 'privacy', name: 'Privacy & Security', icon: Shield }
+    // { id: 'privacy', name: 'Privacy & Security', icon: Shield }
   ];
 
   useEffect(() => {
