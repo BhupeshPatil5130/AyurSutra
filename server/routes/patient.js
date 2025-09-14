@@ -12,6 +12,14 @@ import Invoice from '../models/Invoice.js';
 import Message from '../models/Message.js';
 import Conversation from '../models/Conversation.js';
 import User from '../models/User.js';
+import PaymentMethod from '../models/PaymentMethod.js';
+import Payment from '../models/Payment.js';
+import VitalSign from '../models/VitalSign.js';
+import Document from '../models/Document.js';
+import HealthTracking from '../models/HealthTracking.js';
+import HealthGoal from '../models/HealthGoal.js';
+import TherapySession from '../models/TherapySession.js';
+import DietItem from '../models/DietItem.js';
 
 const router = express.Router();
 
@@ -1013,57 +1021,6 @@ router.post('/conversations/:id/messages', validateMongoId('id'), async (req, re
   }
 });
 
-// Health tracking
-router.get('/health-tracking', async (req, res) => {
-  try {
-    const { metric, days = 30 } = req.query;
-    
-    let patient;
-    if (req.useMockDb) {
-      const patients = await req.mockDb.find('patients', { userId: req.user._id });
-      patient = patients[0];
-    } else {
-      patient = await Patient.findOne({ userId: req.user._id });
-    }
-    
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient profile not found' });
-    }
-
-    // Mock health tracking data
-    const healthData = {
-      metric: metric || 'weight',
-      data: [],
-      trends: {
-        current: 70,
-        previous: 72,
-        change: -2,
-        changePercent: -2.8
-      }
-    };
-
-    // Generate mock data points
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      healthData.data.push({
-        date: date.toISOString().split('T')[0],
-        value: 70 + Math.random() * 4 - 2, // Random value around 70
-        unit: metric === 'weight' ? 'kg' : 'units'
-      });
-    }
-
-    res.json(healthData);
-  } catch (error) {
-    console.error('Get health tracking error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to get health tracking data',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-});
 
 // Health goals management
 router.get('/health-goals', async (req, res) => {
@@ -1457,4 +1414,1605 @@ router.put('/notifications/:id/read', async (req, res) => {
   }
 });
 
-export default router;
+// Get therapy plans with progress tracking
+router.get('/therapy-plans/:id/progress', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const therapyPlan = req.mockDb.therapyPlans.find(plan => 
+        plan._id === id && plan.patientId === patient._id
+      );
+      
+      if (!therapyPlan) {
+        return res.status(404).json({ message: 'Therapy plan not found' });
+      }
+      
+      // Mock progress data
+      const progressData = {
+        planId: id,
+        totalSessions: therapyPlan.sessions || 10,
+        completedSessions: 6,
+        progressPercentage: 60,
+        currentWeek: 3,
+        totalWeeks: therapyPlan.duration || 8,
+        exercises: [
+          { id: 'ex1', name: 'Morning Stretches', completed: true, date: new Date().toISOString() },
+          { id: 'ex2', name: 'Breathing Exercises', completed: true, date: new Date().toISOString() },
+          { id: 'ex3', name: 'Meditation', completed: false, date: null }
+        ],
+        dietCompliance: [
+          { id: 'diet1', item: 'Herbal Tea', completed: true, date: new Date().toISOString() },
+          { id: 'diet2', item: 'Vegetables', completed: true, date: new Date().toISOString() },
+          { id: 'diet3', item: 'Avoid Spicy Food', completed: false, date: null }
+        ],
+        notes: 'Good progress overall. Continue with current routine.',
+        nextSession: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      
+      res.json(progressData);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const therapyPlan = await TherapyPlan.findOne({
+        _id: id,
+        patientId: patient._id
+      });
+      
+      if (!therapyPlan) {
+        return res.status(404).json({ message: 'Therapy plan not found' });
+      }
+      
+      // Calculate progress data
+      const totalSessions = therapyPlan.sessions || 10;
+      const completedSessions = await TherapySession.countDocuments({
+        therapyPlanId: id,
+        status: 'completed'
+      });
+      
+      const progressData = {
+        planId: id,
+        totalSessions,
+        completedSessions,
+        progressPercentage: Math.round((completedSessions / totalSessions) * 100),
+        currentWeek: Math.ceil(completedSessions / 2),
+        totalWeeks: therapyPlan.duration || 8,
+        exercises: therapyPlan.exercises || [],
+        dietCompliance: therapyPlan.dietPlan || [],
+        notes: therapyPlan.notes || '',
+        nextSession: therapyPlan.nextSession || null
+      };
+      
+      res.json(progressData);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Complete therapy session
+router.patch('/therapy-sessions/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock session completion
+      res.json({
+        message: 'Session marked as completed',
+        sessionId: id,
+        completedAt: new Date().toISOString()
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const session = await TherapySession.findOneAndUpdate(
+        { _id: id, patientId: patient._id },
+        { 
+          status: 'completed',
+          completedAt: new Date()
+        },
+        { new: true }
+      );
+      
+      if (!session) {
+        return res.status(404).json({ message: 'Session not found' });
+      }
+      
+      res.json({
+        message: 'Session marked as completed',
+        session
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update diet compliance
+router.patch('/diet-items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { completed } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock diet item update
+      res.json({
+        message: 'Diet compliance updated',
+        itemId: id,
+        completed,
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const dietItem = await DietItem.findOneAndUpdate(
+        { _id: id, patientId: patient._id },
+        { 
+          completed,
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+      
+      if (!dietItem) {
+        return res.status(404).json({ message: 'Diet item not found' });
+      }
+      
+      res.json({
+        message: 'Diet compliance updated',
+        dietItem
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get practitioners for search
+router.get('/practitioners/search', async (req, res) => {
+  try {
+    const { specialization, location, rating, availability } = req.query;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      let practitioners = req.mockDb.practitioners.filter(p => p.isActive);
+      
+      // Apply filters
+      if (specialization) {
+        practitioners = practitioners.filter(p => 
+          p.specializations?.some(spec => 
+            spec.toLowerCase().includes(specialization.toLowerCase())
+          )
+        );
+      }
+      
+      if (location) {
+        practitioners = practitioners.filter(p => 
+          p.location?.toLowerCase().includes(location.toLowerCase())
+        );
+      }
+      
+      if (rating) {
+        practitioners = practitioners.filter(p => p.rating >= parseFloat(rating));
+      }
+      
+      // Add user details
+      const practitionersWithUsers = practitioners.map(practitioner => {
+        const user = req.mockDb.users.find(u => u._id === practitioner.userId);
+        return {
+          ...practitioner,
+          user: user ? {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone
+          } : null
+        };
+      });
+      
+      res.json(practitionersWithUsers);
+    } else {
+      // Use MongoDB
+      let query = { isActive: true };
+      
+      if (specialization) {
+        query.specializations = { $in: [new RegExp(specialization, 'i')] };
+      }
+      
+      if (location) {
+        query.location = { $regex: location, $options: 'i' };
+      }
+      
+      if (rating) {
+        query.rating = { $gte: parseFloat(rating) };
+      }
+      
+      const practitioners = await Practitioner.find(query)
+        .populate('userId', 'firstName lastName email phone')
+        .sort({ rating: -1 });
+      
+      res.json(practitioners);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Book appointment
+router.post('/appointments/book', async (req, res) => {
+  try {
+    const { practitionerId, type, date, time, notes } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const practitioner = req.mockDb.practitioners.find(p => p._id === practitionerId);
+      
+      if (!practitioner) {
+        return res.status(404).json({ message: 'Practitioner not found' });
+      }
+      
+      const newAppointment = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        practitionerId,
+        type: type || 'consultation',
+        appointmentDate: date,
+        time,
+        status: 'pending',
+        notes: notes || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      req.mockDb.appointments.push(newAppointment);
+      req.mockDb.saveData('appointments.json', req.mockDb.appointments);
+      
+      res.json({
+        message: 'Appointment booked successfully',
+        appointment: newAppointment
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const appointment = new Appointment({
+        patientId: patient._id,
+        practitionerId,
+        type: type || 'consultation',
+        appointmentDate: date,
+        time,
+        status: 'pending',
+        notes: notes || ''
+      });
+      
+      await appointment.save();
+      
+      res.json({
+        message: 'Appointment booked successfully',
+        appointment
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Create conversation
+router.post('/conversations', async (req, res) => {
+  try {
+    const { practitionerId, subject, message } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const newConversation = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        practitionerId,
+        subject: subject || 'General Inquiry',
+        status: 'active',
+        lastMessage: message || '',
+        lastMessageAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      req.mockDb.conversations.push(newConversation);
+      req.mockDb.saveData('conversations.json', req.mockDb.conversations);
+      
+      // Add initial message
+      const newMessage = {
+        _id: req.mockDb.generateId(),
+        conversationId: newConversation._id,
+        senderId: req.user._id,
+        senderType: 'patient',
+        content: message || '',
+        type: 'text',
+        createdAt: new Date().toISOString()
+      };
+      
+      req.mockDb.messages.push(newMessage);
+      req.mockDb.saveData('messages.json', req.mockDb.messages);
+      
+      res.json({
+        message: 'Conversation created successfully',
+        conversation: newConversation
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const conversation = new Conversation({
+        patientId: patient._id,
+        practitionerId,
+        subject: subject || 'General Inquiry',
+        status: 'active'
+      });
+      
+      await conversation.save();
+      
+      // Add initial message
+      const messageDoc = new Message({
+        conversationId: conversation._id,
+        senderId: req.user._id,
+        senderType: 'patient',
+        content: message || '',
+        type: 'text'
+      });
+      
+      await messageDoc.save();
+      
+      res.json({
+        message: 'Conversation created successfully',
+        conversation
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get payment methods
+router.get('/payment-methods', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock payment methods
+      const paymentMethods = [
+        {
+          _id: 'pm1',
+          type: 'card',
+          last4: '4242',
+          brand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025,
+          isDefault: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: 'pm2',
+          type: 'upi',
+          upiId: 'patient@paytm',
+          isDefault: false,
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      res.json(paymentMethods);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const paymentMethods = await PaymentMethod.find({ patientId: patient._id })
+        .sort({ isDefault: -1, createdAt: -1 });
+      
+      res.json(paymentMethods);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Add payment method
+router.post('/payment-methods', async (req, res) => {
+  try {
+    const { type, cardDetails, upiDetails } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const newPaymentMethod = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        type,
+        ...(type === 'card' ? cardDetails : upiDetails),
+        isDefault: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'Payment method added successfully',
+        paymentMethod: newPaymentMethod
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const paymentMethod = new PaymentMethod({
+        patientId: patient._id,
+        type,
+        ...(type === 'card' ? cardDetails : upiDetails)
+      });
+      
+      await paymentMethod.save();
+      
+      res.json({
+        message: 'Payment method added successfully',
+        paymentMethod
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get payment stats
+router.get('/payment-stats', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock payment stats
+      const stats = {
+        totalSpent: 45000,
+        thisMonth: 15000,
+        lastMonth: 12000,
+        totalInvoices: 8,
+        paidInvoices: 6,
+        pendingInvoices: 2,
+        averagePayment: 5625,
+        paymentMethods: 2,
+        recentTransactions: [
+          {
+            id: 'txn1',
+            amount: 2000,
+            type: 'payment',
+            status: 'completed',
+            date: new Date().toISOString(),
+            description: 'Consultation Fee'
+          },
+          {
+            id: 'txn2',
+            amount: 1500,
+            type: 'payment',
+            status: 'completed',
+            date: new Date(Date.now() - 86400000).toISOString(),
+            description: 'Therapy Session'
+          }
+        ]
+      };
+      
+      res.json(stats);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const invoices = await Invoice.find({ patientId: patient._id });
+      const payments = await Payment.find({ patientId: patient._id });
+      
+      const totalSpent = payments.reduce((sum, payment) => sum + payment.amount, 0);
+      const thisMonth = payments.filter(p => 
+        new Date(p.createdAt).getMonth() === new Date().getMonth()
+      ).reduce((sum, payment) => sum + payment.amount, 0);
+      
+      const stats = {
+        totalSpent,
+        thisMonth,
+        totalInvoices: invoices.length,
+        paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
+        pendingInvoices: invoices.filter(inv => inv.status === 'pending').length,
+        averagePayment: payments.length > 0 ? totalSpent / payments.length : 0,
+        paymentMethods: await PaymentMethod.countDocuments({ patientId: patient._id })
+      };
+      
+      res.json(stats);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Pay invoice
+router.post('/invoices/:id/pay', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethodId, amount } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const invoice = req.mockDb.invoices.find(inv => inv._id === id && inv.patientId === patient._id);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: 'Invoice not found' });
+      }
+      
+      // Mock payment processing
+      const payment = {
+        _id: req.mockDb.generateId(),
+        invoiceId: id,
+        patientId: patient._id,
+        amount: amount || invoice.totalAmount,
+        paymentMethodId,
+        status: 'completed',
+        transactionId: 'txn_' + Date.now(),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Update invoice status
+      invoice.status = 'paid';
+      invoice.paidAt = new Date().toISOString();
+      
+      res.json({
+        message: 'Payment processed successfully',
+        payment,
+        invoice
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const invoice = await Invoice.findOne({ _id: id, patientId: patient._id });
+      
+      if (!invoice) {
+        return res.status(404).json({ message: 'Invoice not found' });
+      }
+      
+      const payment = new Payment({
+        invoiceId: id,
+        patientId: patient._id,
+        amount: amount || invoice.totalAmount,
+        paymentMethodId,
+        status: 'completed'
+      });
+      
+      await payment.save();
+      
+      // Update invoice status
+      invoice.status = 'paid';
+      invoice.paidAt = new Date();
+      await invoice.save();
+      
+      res.json({
+        message: 'Payment processed successfully',
+        payment,
+        invoice
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Download invoice
+router.get('/invoices/:id/download', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const invoice = req.mockDb.invoices.find(inv => inv._id === id && inv.patientId === patient._id);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: 'Invoice not found' });
+      }
+      
+      // Mock PDF generation
+      const pdfContent = `Invoice #${invoice.invoiceNumber}
+Date: ${new Date(invoice.createdAt).toLocaleDateString()}
+Amount: ₹${invoice.totalAmount}
+Status: ${invoice.status}`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`);
+      res.send(pdfContent);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const invoice = await Invoice.findOne({ _id: id, patientId: patient._id });
+      
+      if (!invoice) {
+        return res.status(404).json({ message: 'Invoice not found' });
+      }
+      
+      // Generate PDF (implement PDF generation logic)
+      const pdfBuffer = await generateInvoicePDF(invoice);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`);
+      res.send(pdfBuffer);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get vitals
+router.get('/vitals', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock vitals data
+      const vitals = [
+        {
+          _id: 'vital1',
+          patientId: patient._id,
+          type: 'blood_pressure',
+          value: '120/80',
+          unit: 'mmHg',
+          recordedAt: new Date().toISOString(),
+          notes: 'Normal range'
+        },
+        {
+          _id: 'vital2',
+          patientId: patient._id,
+          type: 'heart_rate',
+          value: '72',
+          unit: 'bpm',
+          recordedAt: new Date(Date.now() - 86400000).toISOString(),
+          notes: 'Resting heart rate'
+        },
+        {
+          _id: 'vital3',
+          patientId: patient._id,
+          type: 'weight',
+          value: '70',
+          unit: 'kg',
+          recordedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+          notes: 'Morning weight'
+        }
+      ];
+      
+      res.json(vitals);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const vitals = await VitalSign.find({ patientId: patient._id })
+        .sort({ recordedAt: -1 });
+      
+      res.json(vitals);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Add vital
+router.post('/vitals', async (req, res) => {
+  try {
+    const { type, value, unit, notes } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const newVital = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        type,
+        value,
+        unit,
+        notes: notes || '',
+        recordedAt: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'Vital recorded successfully',
+        vital: newVital
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const vital = new VitalSign({
+        patientId: patient._id,
+        type,
+        value,
+        unit,
+        notes: notes || ''
+      });
+      
+      await vital.save();
+      
+      res.json({
+        message: 'Vital recorded successfully',
+        vital
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Upload medical record
+router.post('/medical-records/upload', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock file upload
+      const newRecord = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        type: 'document',
+        title: 'Uploaded Document',
+        fileName: 'document.pdf',
+        fileUrl: '/uploads/document.pdf',
+        uploadedAt: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'Document uploaded successfully',
+        record: newRecord
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Handle file upload (implement file upload logic)
+      const uploadedFile = await uploadFile(req.file);
+      
+      const medicalRecord = new MedicalRecord({
+        patientId: patient._id,
+        type: 'document',
+        title: req.body.title || req.file.originalname,
+        fileName: req.file.originalname,
+        fileUrl: uploadedFile.url
+      });
+      
+      await medicalRecord.save();
+      
+      res.json({
+        message: 'Document uploaded successfully',
+        record: medicalRecord
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Download medical record
+router.get('/medical-records/:id/download', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const record = req.mockDb.medicalRecords.find(r => r._id === id && r.patientId === patient._id);
+      
+      if (!record) {
+        return res.status(404).json({ message: 'Record not found' });
+      }
+      
+      // Mock file download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${record.fileName}"`);
+      res.send('Mock file content');
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const record = await MedicalRecord.findOne({ _id: id, patientId: patient._id });
+      
+      if (!record) {
+        return res.status(404).json({ message: 'Record not found' });
+      }
+      
+      // Download file from storage
+      const fileBuffer = await downloadFile(record.fileUrl);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${record.fileName}"`);
+      res.send(fileBuffer);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get documents
+router.get('/documents', async (req, res) => {
+  try {
+    const { folder, type, search } = req.query;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock documents
+      let documents = [
+        {
+          _id: 'doc1',
+          patientId: patient._id,
+          title: 'Blood Test Report',
+          type: 'lab_report',
+          fileName: 'blood_test_2024.pdf',
+          fileUrl: '/uploads/blood_test_2024.pdf',
+          folder: 'medical_reports',
+          size: 245760,
+          uploadedAt: new Date().toISOString()
+        },
+        {
+          _id: 'doc2',
+          patientId: patient._id,
+          title: 'X-Ray Scan',
+          type: 'scan',
+          fileName: 'xray_chest_2024.pdf',
+          fileUrl: '/uploads/xray_chest_2024.pdf',
+          folder: 'scans',
+          size: 1024000,
+          uploadedAt: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          _id: 'doc3',
+          patientId: patient._id,
+          title: 'Prescription',
+          type: 'prescription',
+          fileName: 'prescription_jan_2024.pdf',
+          fileUrl: '/uploads/prescription_jan_2024.pdf',
+          folder: 'prescriptions',
+          size: 128000,
+          uploadedAt: new Date(Date.now() - 2 * 86400000).toISOString()
+        }
+      ];
+      
+      // Apply filters
+      if (folder) {
+        documents = documents.filter(doc => doc.folder === folder);
+      }
+      
+      if (type) {
+        documents = documents.filter(doc => doc.type === type);
+      }
+      
+      if (search) {
+        documents = documents.filter(doc => 
+          doc.title.toLowerCase().includes(search.toLowerCase()) ||
+          doc.fileName.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      res.json(documents);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      let query = { patientId: patient._id };
+      
+      if (folder) {
+        query.folder = folder;
+      }
+      
+      if (type) {
+        query.type = type;
+      }
+      
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { fileName: { $regex: search, $options: 'i' } }
+        ];
+      }
+      
+      const documents = await Document.find(query)
+        .sort({ uploadedAt: -1 });
+      
+      res.json(documents);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get document folders
+router.get('/document-folders', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const folders = [
+        {
+          _id: 'folder1',
+          name: 'medical_reports',
+          displayName: 'Medical Reports',
+          count: 5,
+          color: '#3B82F6'
+        },
+        {
+          _id: 'folder2',
+          name: 'scans',
+          displayName: 'Scans & Images',
+          count: 3,
+          color: '#10B981'
+        },
+        {
+          _id: 'folder3',
+          name: 'prescriptions',
+          displayName: 'Prescriptions',
+          count: 8,
+          color: '#F59E0B'
+        },
+        {
+          _id: 'folder4',
+          name: 'insurance',
+          displayName: 'Insurance',
+          count: 2,
+          color: '#EF4444'
+        }
+      ];
+      
+      res.json(folders);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const folders = await Document.aggregate([
+        { $match: { patientId: patient._id } },
+        { $group: { _id: '$folder', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]);
+      
+      const folderData = folders.map(folder => ({
+        _id: folder._id,
+        name: folder._id,
+        displayName: folder._id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        count: folder.count,
+        color: getFolderColor(folder._id)
+      }));
+      
+      res.json(folderData);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Upload document
+router.post('/documents', async (req, res) => {
+  try {
+    const { title, type, folder } = req.body;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const newDocument = {
+        _id: req.mockDb.generateId(),
+        patientId: patient._id,
+        title: title || 'Uploaded Document',
+        type: type || 'document',
+        fileName: req.file?.originalname || 'document.pdf',
+        fileUrl: '/uploads/' + (req.file?.filename || 'document.pdf'),
+        folder: folder || 'general',
+        size: req.file?.size || 0,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'Document uploaded successfully',
+        document: newDocument
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Handle file upload
+      const uploadedFile = await uploadFile(req.file);
+      
+      const document = new Document({
+        patientId: patient._id,
+        title: title || req.file.originalname,
+        type: type || 'document',
+        fileName: req.file.originalname,
+        fileUrl: uploadedFile.url,
+        folder: folder || 'general',
+        size: req.file.size
+      });
+      
+      await document.save();
+      
+      res.json({
+        message: 'Document uploaded successfully',
+        document
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Download document
+router.get('/documents/:id/download', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const document = req.mockDb.documents.find(doc => doc._id === id && doc.patientId === patient._id);
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Mock file download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.send('Mock file content');
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const document = await Document.findOne({ _id: id, patientId: patient._id });
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Download file from storage
+      const fileBuffer = await downloadFile(document.fileUrl);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${document.fileName}"`);
+      res.send(fileBuffer);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete document
+router.delete('/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const documentIndex = req.mockDb.documents.findIndex(doc => doc._id === id && doc.patientId === patient._id);
+      
+      if (documentIndex === -1) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      req.mockDb.documents.splice(documentIndex, 1);
+      req.mockDb.saveData('documents.json', req.mockDb.documents);
+      
+      res.json({ message: 'Document deleted successfully' });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const document = await Document.findOneAndDelete({ _id: id, patientId: patient._id });
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Delete file from storage
+      await deleteFile(document.fileUrl);
+      
+      res.json({ message: 'Document deleted successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Share document
+router.post('/documents/:id/share', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const document = req.mockDb.documents.find(doc => doc._id === id && doc.patientId === patient._id);
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Mock share link generation
+      const shareUrl = `${process.env.CLIENT_URL}/shared-document/${id}?token=${req.mockDb.generateId()}`;
+      
+      res.json({
+        message: 'Share link generated successfully',
+        shareUrl
+      });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const document = await Document.findOne({ _id: id, patientId: patient._id });
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Generate share token
+      const shareToken = jwt.sign(
+        { documentId: id, patientId: patient._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      
+      const shareUrl = `${process.env.CLIENT_URL}/shared-document/${id}?token=${shareToken}`;
+      
+      res.json({
+        message: 'Share link generated successfully',
+        shareUrl
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get health tracking data
+router.get('/health-tracking', async (req, res) => {
+  try {
+    const { metric, days } = req.query;
+    const timeRange = parseInt(days) || 30;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock health tracking data
+      const data = {
+        metric: metric || 'weight',
+        timeRange,
+        dataPoints: generateMockHealthData(metric || 'weight', timeRange),
+        trends: {
+          current: 70,
+          previous: 72,
+          change: -2,
+          changePercent: -2.8
+        },
+        goals: [
+          {
+            id: 'goal1',
+            metric: 'weight',
+            target: 65,
+            current: 70,
+            progress: 71.4
+          }
+        ]
+      };
+      
+      res.json(data);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - timeRange);
+      
+      const healthData = await HealthTracking.find({
+        patientId: patient._id,
+        metric: metric || 'weight',
+        recordedAt: { $gte: startDate }
+      }).sort({ recordedAt: 1 });
+      
+      const data = {
+        metric: metric || 'weight',
+        timeRange,
+        dataPoints: healthData,
+        trends: calculateTrends(healthData)
+      };
+      
+      res.json(data);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get review stats
+router.get('/review-stats', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Mock review stats
+      const stats = {
+        totalReviews: 5,
+        averageRating: 4.2,
+        ratingDistribution: {
+          5: 2,
+          4: 2,
+          3: 1,
+          2: 0,
+          1: 0
+        },
+        recentReviews: 2,
+        helpfulVotes: 8
+      };
+      
+      res.json(stats);
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const reviews = await Review.find({ patientId: patient._id });
+      
+      const stats = {
+        totalReviews: reviews.length,
+        averageRating: reviews.length > 0 ? 
+          reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0,
+        ratingDistribution: calculateRatingDistribution(reviews),
+        recentReviews: reviews.filter(r => 
+          new Date(r.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        ).length,
+        helpfulVotes: reviews.reduce((sum, review) => sum + (review.helpfulVotes || 0), 0)
+      };
+      
+      res.json(stats);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Mark all notifications as read
+router.patch('/notifications/mark-all-read', async (req, res) => {
+  try {
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      // Update all notifications for this patient
+      req.mockDb.notifications.forEach(notification => {
+        if (notification.patientId === patient._id) {
+          notification.isRead = true;
+        }
+      });
+      
+      req.mockDb.saveData('notifications.json', req.mockDb.notifications);
+      
+      res.json({ message: 'All notifications marked as read' });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      await Notification.updateMany(
+        { patientId: patient._id, isRead: false },
+        { isRead: true }
+      );
+      
+      res.json({ message: 'All notifications marked as read' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete notification
+router.delete('/notifications/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (req.useMockDb) {
+      // Use mock database
+      const patient = req.mockDb.patients.find(p => p.userId === req.user._id);
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const notificationIndex = req.mockDb.notifications.findIndex(notif => 
+        notif._id === id && notif.patientId === patient._id
+      );
+      
+      if (notificationIndex === -1) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+      
+      req.mockDb.notifications.splice(notificationIndex, 1);
+      req.mockDb.saveData('notifications.json', req.mockDb.notifications);
+      
+      res.json({ message: 'Notification deleted successfully' });
+    } else {
+      // Use MongoDB
+      const patient = await Patient.findOne({ userId: req.user._id });
+      
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found' });
+      }
+      
+      const notification = await Notification.findOneAndDelete({
+        _id: id,
+        patientId: patient._id
+      });
+      
+      if (!notification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+      
+      res.json({ message: 'Notification deleted successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Helper functions
+function generateMockHealthData(metric, days) {
+  const data = [];
+  const baseValue = metric === 'weight' ? 70 : metric === 'blood_pressure' ? 120 : 72;
+  
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: baseValue + (Math.random() - 0.5) * 4,
+      unit: metric === 'weight' ? 'kg' : metric === 'blood_pressure' ? 'mmHg' : 'bpm'
+    });
+  }
+  
+  return data;
+}
+
+function calculateTrends(dataPoints) {
+  if (dataPoints.length < 2) {
+    return { current: 0, previous: 0, change: 0, changePercent: 0 };
+  }
+  
+  const current = dataPoints[dataPoints.length - 1].value;
+  const previous = dataPoints[0].value;
+  const change = current - previous;
+  const changePercent = previous !== 0 ? (change / previous) * 100 : 0;
+  
+  return { current, previous, change, changePercent };
+}
+
+function calculateRatingDistribution(reviews) {
+  const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  
+  reviews.forEach(review => {
+    distribution[review.rating]++;
+  });
+  
+  return distribution;
+}
+
+function getFolderColor(folderName) {
+  const colors = {
+    'medical_reports': '#3B82F6',
+    'scans': '#10B981',
+    'prescriptions': '#F59E0B',
+    'insurance': '#EF4444',
+    'general': '#6B7280'
+  };
+  
+  return colors[folderName] || '#6B7280';
+}
+
+ export default router;

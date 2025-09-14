@@ -21,6 +21,14 @@ class MockDatabase {
     this.medicalRecords = this.loadData('medicalRecords.json', []);
     this.invoices = this.loadData('invoices.json', []);
     this.reviews = this.loadData('reviews.json', []);
+    this.paymentMethods = this.loadData('paymentMethods.json', []);
+    this.payments = this.loadData('payments.json', []);
+    this.vitalSigns = this.loadData('vitalSigns.json', []);
+    this.documents = this.loadData('documents.json', []);
+    this.healthTracking = this.loadData('healthTracking.json', []);
+    this.healthGoals = this.loadData('healthGoals.json', []);
+    this.therapySessions = this.loadData('therapySessions.json', []);
+    this.dietItems = this.loadData('dietItems.json', []);
     
     this.initializeDemoData();
   }
@@ -551,6 +559,202 @@ class MockDatabase {
         }
       ];
       this.saveData('invoices.json', this.invoices);
+
+      // Initialize Payment Methods
+      this.paymentMethods = [
+        {
+          _id: 'pm001',
+          patientId: 'pat001',
+          type: 'card',
+          last4: '4242',
+          brand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025,
+          isDefault: true,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now
+        },
+        {
+          _id: 'pm002',
+          patientId: 'pat001',
+          type: 'upi',
+          upiId: 'patient@paytm',
+          isDefault: false,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('paymentMethods.json', this.paymentMethods);
+
+      // Initialize Payments
+      this.payments = [
+        {
+          _id: 'pay001',
+          patientId: 'pat001',
+          invoiceId: 'inv001',
+          paymentMethodId: 'pm001',
+          amount: 1770,
+          currency: 'INR',
+          status: 'completed',
+          transactionId: 'txn_123456789',
+          gateway: 'razorpay',
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('payments.json', this.payments);
+
+      // Initialize Vital Signs
+      this.vitalSigns = [
+        {
+          _id: 'vs001',
+          patientId: 'pat001',
+          type: 'blood_pressure',
+          value: '120/80',
+          unit: 'mmHg',
+          systolic: 120,
+          diastolic: 80,
+          recordedAt: now,
+          notes: 'Normal range',
+          location: 'home',
+          createdAt: now,
+          updatedAt: now
+        },
+        {
+          _id: 'vs002',
+          patientId: 'pat001',
+          type: 'weight',
+          value: '70',
+          unit: 'kg',
+          recordedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          notes: 'Morning weight',
+          location: 'home',
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('vitalSigns.json', this.vitalSigns);
+
+      // Initialize Documents
+      this.documents = [
+        {
+          _id: 'doc001',
+          patientId: 'pat001',
+          title: 'Blood Test Report',
+          type: 'lab_report',
+          fileName: 'blood_test_2024.pdf',
+          originalFileName: 'blood_test_2024.pdf',
+          fileUrl: '/uploads/blood_test_2024.pdf',
+          fileSize: 245760,
+          mimeType: 'application/pdf',
+          folder: 'medical_reports',
+          tags: ['blood', 'test', 'lab'],
+          isPublic: false,
+          accessLevel: 'private',
+          status: 'ready',
+          uploadedBy: 'pat001',
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('documents.json', this.documents);
+
+      // Initialize Health Tracking
+      this.healthTracking = [
+        {
+          _id: 'ht001',
+          patientId: 'pat001',
+          metric: 'weight',
+          value: 70,
+          unit: 'kg',
+          recordedAt: now,
+          location: 'home',
+          device: 'Smart Scale',
+          tags: ['daily', 'morning'],
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('healthTracking.json', this.healthTracking);
+
+      // Initialize Health Goals
+      this.healthGoals = [
+        {
+          _id: 'hg001',
+          patientId: 'pat001',
+          title: 'Weight Management',
+          description: 'Maintain healthy weight through diet and exercise',
+          metric: 'weight',
+          targetValue: 65,
+          currentValue: 70,
+          unit: 'kg',
+          startDate: now,
+          targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active',
+          priority: 'high',
+          category: 'fitness',
+          progress: 85,
+          milestones: [
+            {
+              value: 68,
+              date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              description: 'First milestone',
+              achieved: false
+            }
+          ],
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('healthGoals.json', this.healthGoals);
+
+      // Initialize Therapy Sessions
+      this.therapySessions = [
+        {
+          _id: 'ts001',
+          patientId: 'pat001',
+          practitionerId: 'prac001',
+          therapyPlanId: 'tp001',
+          sessionNumber: 1,
+          title: 'Initial Consultation',
+          description: 'First therapy session for stress management',
+          scheduledDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          duration: 60,
+          status: 'scheduled',
+          sessionType: 'consultation',
+          location: 'clinic',
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('therapySessions.json', this.therapySessions);
+
+      // Initialize Diet Items
+      this.dietItems = [
+        {
+          _id: 'di001',
+          patientId: 'pat001',
+          therapyPlanId: 'tp001',
+          name: 'Herbal Tea',
+          description: 'Tulsi and ginger tea',
+          category: 'beverage',
+          quantity: '1 cup',
+          unit: 'cup',
+          timing: 'morning',
+          frequency: 'daily',
+          days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+          completed: false,
+          priority: 'medium',
+          status: 'active',
+          startDate: now,
+          benefits: ['digestive health', 'immunity'],
+          createdAt: now,
+          updatedAt: now
+        }
+      ];
+      this.saveData('dietItems.json', this.dietItems);
 
       console.log('✅ Comprehensive demo data initialized successfully');
     }
