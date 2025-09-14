@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, LogIn, User, Shield, Heart } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +20,6 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      toast.success('Login successful!');
       // Redirect based on role
       switch (result.user.role) {
         case 'admin':
@@ -36,8 +34,6 @@ const Login = () => {
         default:
           navigate('/');
       }
-    } else {
-      toast.error(result.message);
     }
     
     setLoading(false);
@@ -48,10 +44,7 @@ const Login = () => {
     const result = await demoLogin(role);
     
     if (result.success) {
-      toast.success(`Demo ${role} login successful!`);
       navigate(`/${role}`);
-    } else {
-      toast.error(result.message);
     }
     
     setLoading(false);

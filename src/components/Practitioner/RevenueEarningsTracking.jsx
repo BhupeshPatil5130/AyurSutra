@@ -5,7 +5,7 @@ import {
   ArrowDownRight, Users, Clock, CheckCircle, AlertCircle
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const RevenueEarningsTracking = () => {
   const [revenueData, setRevenueData] = useState({});
@@ -28,7 +28,7 @@ const RevenueEarningsTracking = () => {
       setRevenueData(response.data);
     } catch (error) {
       console.error('Error fetching revenue data:', error);
-      toast.error('Error loading revenue data');
+      
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ const RevenueEarningsTracking = () => {
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      toast.error('Error loading transactions');
+      
     }
   };
 

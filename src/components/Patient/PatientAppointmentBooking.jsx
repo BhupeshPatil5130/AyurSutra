@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import { getAppointments, getPractitioners } from '../../services/mockPatientData';
-import toast from 'react-hot-toast';
+
 
 const PatientAppointmentBooking = () => {
   const [appointments, setAppointments] = useState([]);
@@ -62,7 +62,7 @@ const PatientAppointmentBooking = () => {
       const mockAppointments = getAppointments({ type: viewMode, status: filterStatus });
       setAppointments(mockAppointments);
       setUsingMockData(true);
-      toast.success('Appointments loaded with sample data');
+      
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ const PatientAppointmentBooking = () => {
         { time: '16:00', available: true, duration: 60 }
       ];
       setAvailableSlots(mockSlots);
-      toast.success('Available slots loaded with sample data');
+      
     }
   };
 
@@ -123,10 +123,10 @@ const PatientAppointmentBooking = () => {
         notes: '',
         preferredMode: 'in-person'
       });
-      toast.success('Appointment booked successfully');
+      
     } catch (error) {
       console.error('Error booking appointment:', error);
-      toast.error('Error booking appointment');
+      
     }
   };
 
@@ -142,10 +142,10 @@ const PatientAppointmentBooking = () => {
             : apt
         )
       );
-      toast.success('Appointment cancelled');
+      
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      toast.error('Error cancelling appointment');
+      
     }
   };
 
@@ -156,10 +156,10 @@ const PatientAppointmentBooking = () => {
         timeSlot: newTime
       });
       fetchAppointments();
-      toast.success('Appointment rescheduled');
+      
     } catch (error) {
       console.error('Error rescheduling appointment:', error);
-      toast.error('Error rescheduling appointment');
+      
     }
   };
 

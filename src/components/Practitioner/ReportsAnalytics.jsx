@@ -5,7 +5,7 @@ import {
   ChevronDown, Eye, Settings, Share2, Printer
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const ReportsAnalytics = () => {
   const [reports, setReports] = useState([]);
@@ -54,7 +54,7 @@ const ReportsAnalytics = () => {
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports:', error);
-      toast.error('Error loading reports');
+      
     } finally {
       setLoading(false);
     }
@@ -93,10 +93,10 @@ const ReportsAnalytics = () => {
       link.click();
       link.remove();
       
-      toast.success('Report generated successfully');
+      
     } catch (error) {
       console.error('Error generating report:', error);
-      toast.error('Error generating report');
+      
     }
   };
 
@@ -112,10 +112,9 @@ const ReportsAnalytics = () => {
       link.click();
       link.remove();
       
-      toast.success(`Data exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Error exporting data:', error);
-      toast.error('Error exporting data');
+      
     }
   };
 

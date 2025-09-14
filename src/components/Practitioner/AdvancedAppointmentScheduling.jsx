@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, RefreshCw, Download
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AdvancedAppointmentScheduling = () => {
   const [appointments, setAppointments] = useState([]);
@@ -42,7 +42,7 @@ const AdvancedAppointmentScheduling = () => {
     } catch (error) {
       console.error('Error fetching appointments:', error);
       setAppointments([]);
-      toast.error('Error loading appointments');
+      
     } finally {
       setLoading(false);
     }
@@ -61,26 +61,26 @@ const AdvancedAppointmentScheduling = () => {
   const handleCreateAppointment = async () => {
     try {
       await api.post('/practitioner/appointments', formData);
-      toast.success('Appointment created successfully');
+      
       setShowModal(false);
       resetForm();
       fetchAppointments();
     } catch (error) {
       console.error('Error creating appointment:', error);
-      toast.error('Error creating appointment');
+      
     }
   };
 
   const handleUpdateAppointment = async () => {
     try {
       await api.put(`/practitioner/appointments/${selectedAppointment._id}`, formData);
-      toast.success('Appointment updated successfully');
+      
       setShowModal(false);
       resetForm();
       fetchAppointments();
     } catch (error) {
       console.error('Error updating appointment:', error);
-      toast.error('Error updating appointment');
+      
     }
   };
 
@@ -88,11 +88,11 @@ const AdvancedAppointmentScheduling = () => {
     if (window.confirm('Are you sure you want to delete this appointment?')) {
       try {
         await api.delete(`/practitioner/appointments/${appointmentId}`);
-        toast.success('Appointment deleted successfully');
+        
         fetchAppointments();
       } catch (error) {
         console.error('Error deleting appointment:', error);
-        toast.error('Error deleting appointment');
+        
       }
     }
   };
@@ -100,11 +100,11 @@ const AdvancedAppointmentScheduling = () => {
   const handleStatusUpdate = async (appointmentId, status) => {
     try {
       await api.patch(`/practitioner/appointments/${appointmentId}/status`, { status });
-      toast.success(`Appointment ${status} successfully`);
+      
       fetchAppointments();
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      toast.error('Error updating appointment status');
+      
     }
   };
 

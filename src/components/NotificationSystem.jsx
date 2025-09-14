@@ -11,7 +11,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import api from '../utils/api';
-import toast from 'react-hot-toast';
+
 
 const NotificationSystem = () => {
   const [notifications, setNotifications] = useState([]);
@@ -68,7 +68,7 @@ const NotificationSystem = () => {
   const sendNotification = async () => {
     try {
       await api.post('/notifications/send', notificationData);
-      toast.success('Notification sent successfully');
+      
       setShowSendModal(false);
       setNotificationData({
         recipients: [],
@@ -81,7 +81,7 @@ const NotificationSystem = () => {
       fetchNotifications();
     } catch (error) {
       console.error('Error sending notification:', error);
-      toast.error('Error sending notification');
+      
     }
   };
 

@@ -16,7 +16,7 @@ import {
   FileText
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -62,7 +62,7 @@ const AuditLogs = () => {
       setTotalLogs(response.data.total);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      toast.error('Error fetching audit logs');
+      
     } finally {
       setLoading(false);
     }
@@ -89,10 +89,10 @@ const AuditLogs = () => {
       link.click();
       link.remove();
       
-      toast.success('Audit logs exported successfully');
+      
     } catch (error) {
       console.error('Error exporting audit logs:', error);
-      toast.error('Error exporting audit logs');
+      
     }
   };
 

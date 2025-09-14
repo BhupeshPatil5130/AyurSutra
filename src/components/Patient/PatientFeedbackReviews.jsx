@@ -5,7 +5,7 @@ import {
   Plus, Edit, Trash2, Eye, RefreshCw, Download
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientFeedbackReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -57,7 +57,7 @@ const PatientFeedbackReviews = () => {
       setReviews(response.data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      toast.error('Error loading reviews');
+      
     } finally {
       setLoading(false);
     }
@@ -102,11 +102,11 @@ const PatientFeedbackReviews = () => {
         wouldRecommend: true,
         isAnonymous: false
       });
-      toast.success('Review submitted successfully');
+      
       fetchStats();
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error('Error submitting review');
+      
     }
   };
 
@@ -116,10 +116,10 @@ const PatientFeedbackReviews = () => {
       setReviews(prev => prev.map(review => 
         review._id === reviewId ? response.data : review
       ));
-      toast.success('Review updated successfully');
+      
     } catch (error) {
       console.error('Error updating review:', error);
-      toast.error('Error updating review');
+      
     }
   };
 
@@ -129,11 +129,11 @@ const PatientFeedbackReviews = () => {
     try {
       await api.delete(`/patient/reviews/${reviewId}`);
       setReviews(prev => prev.filter(review => review._id !== reviewId));
-      toast.success('Review deleted successfully');
+      
       fetchStats();
     } catch (error) {
       console.error('Error deleting review:', error);
-      toast.error('Error deleting review');
+      
     }
   };
 

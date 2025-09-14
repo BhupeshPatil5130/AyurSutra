@@ -19,7 +19,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -70,7 +69,7 @@ const UserManagement = () => {
       setTotalUsers(response.data.total);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Error fetching users');
+      
     } finally {
       setLoading(false);
     }
@@ -79,27 +78,27 @@ const UserManagement = () => {
   const createUser = async () => {
     try {
       await api.post('/admin/users', formData);
-      toast.success('User created successfully');
+      
       setShowCreateModal(false);
       resetForm();
       fetchUsers();
     } catch (error) {
       console.error('Error creating user:', error);
-      toast.error('Error creating user');
+      
     }
   };
 
   const updateUser = async () => {
     try {
       await api.put(`/admin/users/${editingUser._id}`, formData);
-      toast.success('User updated successfully');
+      
       setShowEditModal(false);
       setEditingUser(null);
       resetForm();
       fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
-      toast.error('Error updating user');
+      
     }
   };
 
@@ -107,11 +106,11 @@ const UserManagement = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await api.delete(`/admin/users/${userId}`);
-        toast.success('User deleted successfully');
+        
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
-        toast.error('Error deleting user');
+        
       }
     }
   };
@@ -119,17 +118,17 @@ const UserManagement = () => {
   const toggleUserStatus = async (userId, currentStatus) => {
     try {
       await api.patch(`/admin/users/${userId}/status`, { isActive: !currentStatus });
-      toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      
       fetchUsers();
     } catch (error) {
       console.error('Error updating user status:', error);
-      toast.error('Error updating user status');
+      
     }
   };
 
   const bulkAction = async (action) => {
     if (selectedUsers.length === 0) {
-      toast.error('Please select users first');
+      
       return;
     }
 
@@ -138,12 +137,12 @@ const UserManagement = () => {
         userIds: selectedUsers,
         action
       });
-      toast.success(`Bulk ${action} completed successfully`);
+      
       setSelectedUsers([]);
       fetchUsers();
     } catch (error) {
       console.error('Error performing bulk action:', error);
-      toast.error('Error performing bulk action');
+      
     }
   };
 

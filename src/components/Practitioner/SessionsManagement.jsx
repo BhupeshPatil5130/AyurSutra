@@ -16,7 +16,7 @@ import {
   MapPin
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const SessionsManagement = () => {
   const [sessions, setSessions] = useState([]);
@@ -46,7 +46,7 @@ const SessionsManagement = () => {
       setSessions(response.data.appointments || []);
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      toast.error('Error fetching sessions');
+      
     } finally {
       setLoading(false);
     }
@@ -55,11 +55,11 @@ const SessionsManagement = () => {
   const updateSessionStatus = async (sessionId, newStatus) => {
     try {
       await api.put(`/practitioner/appointments/${sessionId}`, { status: newStatus });
-      toast.success(`Session ${newStatus} successfully`);
+      
       fetchSessions();
     } catch (error) {
       console.error('Error updating session:', error);
-      toast.error('Error updating session status');
+      
     }
   };
 
@@ -70,7 +70,7 @@ const SessionsManagement = () => {
       setShowSessionDetails(true);
     } catch (error) {
       console.error('Error fetching session details:', error);
-      toast.error('Error fetching session details');
+      
     }
   };
 

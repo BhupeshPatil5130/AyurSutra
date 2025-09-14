@@ -8,7 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { getPractitioners } from '../../services/mockPatientData';
-import toast from 'react-hot-toast';
+
 
 const PatientPractitionerSearch = () => {
   const [practitioners, setPractitioners] = useState([]);
@@ -71,7 +71,7 @@ const PatientPractitionerSearch = () => {
       const mockPractitioners = getPractitioners();
       setPractitioners(mockPractitioners);
       setUsingMockData(true);
-      toast.success('Practitioners loaded with sample data');
+      
     } finally {
       setLoading(false);
     }
@@ -161,10 +161,10 @@ const PatientPractitionerSearch = () => {
         practitionerId,
         type: 'consultation'
       });
-      toast.success('Consultation booked successfully');
+      
     } catch (error) {
       console.error('Error booking consultation:', error);
-      toast.error('Error booking consultation');
+      
     }
   };
 
@@ -174,10 +174,10 @@ const PatientPractitionerSearch = () => {
         practitionerId,
         message: 'Hello, I would like to inquire about your services.'
       });
-      toast.success('Message sent successfully');
+      
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Error sending message');
+      
     }
   };
 

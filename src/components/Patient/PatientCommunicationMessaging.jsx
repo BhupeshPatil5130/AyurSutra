@@ -6,7 +6,7 @@ import {
   Filter, RefreshCw, Settings, Bell, BellOff
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientCommunicationMessaging = () => {
   const [conversations, setConversations] = useState([]);
@@ -47,7 +47,7 @@ const PatientCommunicationMessaging = () => {
       setConversations(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
-      toast.error('Error loading conversations');
+      
       setConversations([]);
     } finally {
       setLoading(false);
@@ -70,7 +70,7 @@ const PatientCommunicationMessaging = () => {
       setMessages(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast.error('Error loading messages');
+      
       setMessages([]);
     }
   };
@@ -95,13 +95,13 @@ const PatientCommunicationMessaging = () => {
       ));
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Error sending message');
+      
     }
   };
 
   const startNewConversation = async () => {
     if (!selectedPractitioner || !messageSubject.trim() || !newMessage.trim()) {
-      toast.error('Please fill in all fields');
+      
       return;
     }
 
@@ -118,10 +118,10 @@ const PatientCommunicationMessaging = () => {
       setSelectedPractitioner('');
       setMessageSubject('');
       setNewMessage('');
-      toast.success('Conversation started');
+      
     } catch (error) {
       console.error('Error starting conversation:', error);
-      toast.error('Error starting conversation');
+      
     }
   };
 
@@ -144,10 +144,10 @@ const PatientCommunicationMessaging = () => {
         setSelectedConversation(null);
         setMessages([]);
       }
-      toast.success('Conversation archived');
+      
     } catch (error) {
       console.error('Error archiving conversation:', error);
-      toast.error('Error archiving conversation');
+      
     }
   };
 

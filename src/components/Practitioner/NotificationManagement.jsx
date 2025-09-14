@@ -5,7 +5,7 @@ import {
   Settings, Trash2, Archive, Star, RefreshCw, MoreVertical
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const NotificationManagement = () => {
   const [notifications, setNotifications] = useState([]);
@@ -57,7 +57,7 @@ const NotificationManagement = () => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setNotifications([]);
-      toast.error('Error loading notifications');
+      
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ const NotificationManagement = () => {
       );
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      toast.error('Error updating notification');
+      
     }
   };
 
@@ -100,7 +100,7 @@ const NotificationManagement = () => {
       );
     } catch (error) {
       console.error('Error marking notification as unread:', error);
-      toast.error('Error updating notification');
+      
     }
   };
 
@@ -114,10 +114,10 @@ const NotificationManagement = () => {
             : notif
         )
       );
-      toast.success('Notification archived');
+      
     } catch (error) {
       console.error('Error archiving notification:', error);
-      toast.error('Error archiving notification');
+      
     }
   };
 
@@ -125,10 +125,10 @@ const NotificationManagement = () => {
     try {
       await api.delete(`/practitioner/notifications/${notificationId}`);
       setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-      toast.success('Notification deleted');
+      
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Error deleting notification');
+      
     }
   };
 
@@ -145,10 +145,10 @@ const NotificationManagement = () => {
         )
       );
       setSelectedNotifications([]);
-      toast.success('Notifications marked as read');
+      
     } catch (error) {
       console.error('Error bulk updating notifications:', error);
-      toast.error('Error updating notifications');
+      
     }
   };
 
@@ -165,10 +165,10 @@ const NotificationManagement = () => {
         )
       );
       setSelectedNotifications([]);
-      toast.success('Notifications archived');
+      
     } catch (error) {
       console.error('Error bulk archiving notifications:', error);
-      toast.error('Error archiving notifications');
+      
     }
   };
 
@@ -176,10 +176,10 @@ const NotificationManagement = () => {
     try {
       await api.put('/practitioner/notification-settings', settings);
       setNotificationSettings(settings);
-      toast.success('Notification settings updated');
+      
     } catch (error) {
       console.error('Error updating notification settings:', error);
-      toast.error('Error updating settings');
+      
     }
   };
 

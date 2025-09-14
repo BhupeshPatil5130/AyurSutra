@@ -18,7 +18,7 @@ import {
   Tag
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const ContentManagement = () => {
   const [content, setContent] = useState([]);
@@ -62,7 +62,7 @@ const ContentManagement = () => {
       setContent(response.data.content || []);
     } catch (error) {
       console.error('Error fetching content:', error);
-      toast.error('Error fetching content');
+      
     } finally {
       setLoading(false);
     }
@@ -71,27 +71,27 @@ const ContentManagement = () => {
   const createContent = async () => {
     try {
       await api.post('/admin/content', formData);
-      toast.success('Content created successfully');
+      
       setShowCreateModal(false);
       resetForm();
       fetchContent();
     } catch (error) {
       console.error('Error creating content:', error);
-      toast.error('Error creating content');
+      
     }
   };
 
   const updateContent = async () => {
     try {
       await api.put(`/admin/content/${editingContent._id}`, formData);
-      toast.success('Content updated successfully');
+      
       setShowEditModal(false);
       setEditingContent(null);
       resetForm();
       fetchContent();
     } catch (error) {
       console.error('Error updating content:', error);
-      toast.error('Error updating content');
+      
     }
   };
 
@@ -99,11 +99,11 @@ const ContentManagement = () => {
     if (window.confirm('Are you sure you want to delete this content?')) {
       try {
         await api.delete(`/admin/content/${contentId}`);
-        toast.success('Content deleted successfully');
+        
         fetchContent();
       } catch (error) {
         console.error('Error deleting content:', error);
-        toast.error('Error deleting content');
+        
       }
     }
   };

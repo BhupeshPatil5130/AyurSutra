@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, X, Save, Trash2
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const TreatmentHistoryMedicalRecords = () => {
   const [records, setRecords] = useState([]);
@@ -37,7 +37,7 @@ const TreatmentHistoryMedicalRecords = () => {
     } catch (error) {
       console.error('Error fetching records:', error);
       setRecords([]);
-      toast.error('Error loading medical records');
+      
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import {
   Weight, Thermometer, Droplets, Zap, Clock, Award
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientHealthTracking = () => {
   const [healthData, setHealthData] = useState([]);
@@ -58,7 +58,7 @@ const PatientHealthTracking = () => {
       setHealthData(response.data);
     } catch (error) {
       console.error('Error fetching health data:', error);
-      toast.error('Error loading health data');
+      
     } finally {
       setLoading(false);
     }
@@ -87,10 +87,10 @@ const PatientHealthTracking = () => {
         deadline: '',
         description: ''
       });
-      toast.success('Health goal added successfully');
+      
     } catch (error) {
       console.error('Error adding goal:', error);
-      toast.error('Error adding health goal');
+      
     }
   };
 
@@ -100,10 +100,10 @@ const PatientHealthTracking = () => {
       setGoals(prev => prev.map(goal => 
         goal._id === goalId ? { ...goal, currentValue: progress } : goal
       ));
-      toast.success('Progress updated');
+      
     } catch (error) {
       console.error('Error updating progress:', error);
-      toast.error('Error updating progress');
+      
     }
   };
 
@@ -113,10 +113,10 @@ const PatientHealthTracking = () => {
     try {
       await api.delete(`/patient/health-goals/${goalId}`);
       setGoals(prev => prev.filter(goal => goal._id !== goalId));
-      toast.success('Goal deleted successfully');
+      
     } catch (error) {
       console.error('Error deleting goal:', error);
-      toast.error('Error deleting goal');
+      
     }
   };
 

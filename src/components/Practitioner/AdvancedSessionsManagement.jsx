@@ -5,7 +5,7 @@ import {
   X, ChevronLeft, ChevronRight, Star, Heart, TrendingUp
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AdvancedSessionsManagement = () => {
   const [sessions, setSessions] = useState([]);
@@ -34,7 +34,7 @@ const AdvancedSessionsManagement = () => {
       setSessions(response.data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      toast.error('Error loading sessions');
+      
     } finally {
       setLoading(false);
     }
@@ -43,11 +43,11 @@ const AdvancedSessionsManagement = () => {
   const updateSessionStatus = async (sessionId, status) => {
     try {
       await api.patch(`/practitioner/sessions/${sessionId}/status`, { status });
-      toast.success(`Session ${status} successfully`);
+      
       fetchSessions();
     } catch (error) {
       console.error('Error updating session status:', error);
-      toast.error('Error updating session status');
+      
     }
   };
 
@@ -55,11 +55,11 @@ const AdvancedSessionsManagement = () => {
     if (window.confirm('Are you sure you want to delete this session?')) {
       try {
         await api.delete(`/practitioner/sessions/${sessionId}`);
-        toast.success('Session deleted successfully');
+        
         fetchSessions();
       } catch (error) {
         console.error('Error deleting session:', error);
-        toast.error('Error deleting session');
+        
       }
     }
   };

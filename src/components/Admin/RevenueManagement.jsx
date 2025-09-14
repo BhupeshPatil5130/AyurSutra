@@ -16,7 +16,7 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const RevenueManagement = () => {
   const [revenueData, setRevenueData] = useState({});
@@ -39,7 +39,7 @@ const RevenueManagement = () => {
       setRevenueData(response.data);
     } catch (error) {
       console.error('Error fetching revenue data:', error);
-      toast.error('Error fetching revenue data');
+      
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ const RevenueManagement = () => {
       setTotalTransactions(response.data.total);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      toast.error('Error fetching transactions');
+      
     }
   };
 
@@ -76,10 +76,10 @@ const RevenueManagement = () => {
       link.click();
       link.remove();
       
-      toast.success('Revenue report exported successfully');
+      
     } catch (error) {
       console.error('Error exporting revenue report:', error);
-      toast.error('Error exporting revenue report');
+      
     }
   };
 

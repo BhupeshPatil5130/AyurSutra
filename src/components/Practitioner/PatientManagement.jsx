@@ -16,7 +16,7 @@ import {
   Activity
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientManagement = () => {
   const [patients, setPatients] = useState([]);
@@ -55,7 +55,7 @@ const PatientManagement = () => {
       
     } catch (error) {
       console.error('Error fetching patients:', error);
-      toast.error('Error fetching patients');
+      
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ const PatientManagement = () => {
       setShowPatientDetails(true);
     } catch (error) {
       console.error('Error fetching patient details:', error);
-      toast.error('Error fetching patient details');
+      
     }
   };
 

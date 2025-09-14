@@ -15,7 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PractitionerQuickActions = ({ onNavigate }) => {
   const [quickStats, setQuickStats] = useState({
@@ -59,18 +59,18 @@ const PractitionerQuickActions = ({ onNavigate }) => {
       switch (action) {
         case 'mark-available':
           await api.patch('/practitioner/availability/toggle');
-          toast.success('Availability status updated');
+          
           break;
         case 'emergency-mode':
           await api.post('/practitioner/emergency-mode');
-          toast.success('Emergency mode activated');
+          
           break;
         default:
           break;
       }
     } catch (error) {
       console.error('Error performing quick action:', error);
-      toast.error('Error performing action');
+      
     }
   };
 

@@ -5,7 +5,7 @@ import {
   Eye, EyeOff, Lock, Bell, Settings, Download, Share2
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const EnhancedPatientProfile = () => {
   const [profile, setProfile] = useState({});
@@ -33,7 +33,7 @@ const EnhancedPatientProfile = () => {
       setProfile(response.data);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast.error('Error loading profile');
+      
     } finally {
       setLoading(false);
     }
@@ -42,11 +42,11 @@ const EnhancedPatientProfile = () => {
   const saveProfile = async () => {
     try {
       await api.put('/patient/profile', profile);
-      toast.success('Profile updated successfully');
+      
       setEditing(false);
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast.error('Error saving profile');
+      
     }
   };
 
@@ -59,10 +59,10 @@ const EnhancedPatientProfile = () => {
       try {
         const response = await api.post('/patient/profile/image', formData);
         setProfile(prev => ({ ...prev, profileImage: response.data.imageUrl }));
-        toast.success('Profile image updated');
+        
       } catch (error) {
         console.error('Error uploading image:', error);
-        toast.error('Error uploading image');
+        
       }
     }
   };

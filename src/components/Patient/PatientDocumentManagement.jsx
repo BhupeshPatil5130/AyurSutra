@@ -5,7 +5,7 @@ import {
   Plus, RefreshCw, Archive, Star, Lock
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientDocumentManagement = () => {
   const [documents, setDocuments] = useState([]);
@@ -53,7 +53,7 @@ const PatientDocumentManagement = () => {
       setDocuments(response.data);
     } catch (error) {
       console.error('Error fetching documents:', error);
-      toast.error('Error loading documents');
+      
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ const PatientDocumentManagement = () => {
 
   const uploadDocument = async () => {
     if (!uploadData.file || !uploadData.title) {
-      toast.error('Please select a file and enter a title');
+      
       return;
     }
 
@@ -99,10 +99,10 @@ const PatientDocumentManagement = () => {
         tags: [],
         isPrivate: false
       });
-      toast.success('Document uploaded successfully');
+      
     } catch (error) {
       console.error('Error uploading document:', error);
-      toast.error('Error uploading document');
+      
     }
   };
 
@@ -121,7 +121,7 @@ const PatientDocumentManagement = () => {
       link.remove();
     } catch (error) {
       console.error('Error downloading document:', error);
-      toast.error('Error downloading document');
+      
     }
   };
 
@@ -131,10 +131,10 @@ const PatientDocumentManagement = () => {
     try {
       await api.delete(`/patient/documents/${documentId}`);
       setDocuments(prev => prev.filter(doc => doc._id !== documentId));
-      toast.success('Document deleted successfully');
+      
     } catch (error) {
       console.error('Error deleting document:', error);
-      toast.error('Error deleting document');
+      
     }
   };
 
@@ -142,10 +142,10 @@ const PatientDocumentManagement = () => {
     try {
       const response = await api.post(`/patient/documents/${documentId}/share`);
       navigator.clipboard.writeText(response.data.shareUrl);
-      toast.success('Share link copied to clipboard');
+      
     } catch (error) {
       console.error('Error sharing document:', error);
-      toast.error('Error sharing document');
+      
     }
   };
 

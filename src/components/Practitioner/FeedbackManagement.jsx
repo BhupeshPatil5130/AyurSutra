@@ -13,7 +13,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const FeedbackManagement = () => {
   const [reviews, setReviews] = useState([]);
@@ -38,7 +38,7 @@ const FeedbackManagement = () => {
       setReviews(response.data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      toast.error('Error fetching reviews');
+      
     } finally {
       setLoading(false);
     }

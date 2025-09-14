@@ -5,7 +5,7 @@ import {
   Clock, CheckCircle, AlertCircle, X, Plus, RefreshCw
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const CommunicationMessaging = () => {
   const [conversations, setConversations] = useState([]);
@@ -40,7 +40,7 @@ const CommunicationMessaging = () => {
     } catch (error) {
       console.error('Error fetching conversations:', error);
       setConversations([]);
-      toast.error('Error loading conversations');
+      
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ const CommunicationMessaging = () => {
     } catch (error) {
       console.error('Error fetching messages:', error);
       setMessages([]);
-      toast.error('Error loading messages');
+      
     }
   };
 
@@ -83,7 +83,7 @@ const CommunicationMessaging = () => {
       fetchConversations();
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Error sending message');
+      
     }
   };
 
@@ -99,7 +99,7 @@ const CommunicationMessaging = () => {
       fetchConversations();
     } catch (error) {
       console.error('Error starting conversation:', error);
-      toast.error('Error starting conversation');
+      
     }
   };
 

@@ -5,7 +5,7 @@ import {
   Filter, Search, RefreshCw, Trash2, Archive
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientNotificationManagement = () => {
   const [notifications, setNotifications] = useState([]);
@@ -36,7 +36,7 @@ const PatientNotificationManagement = () => {
       setNotifications(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      toast.error('Error loading notifications');
+      
       setNotifications([]);
     } finally {
       setLoading(false);
@@ -64,10 +64,10 @@ const PatientNotificationManagement = () => {
     try {
       await api.patch('/patient/notification-settings', newSettings);
       setSettings(newSettings);
-      toast.success('Settings updated successfully');
+      
     } catch (error) {
       console.error('Error updating settings:', error);
-      toast.error('Error updating settings');
+      
     }
   };
 
@@ -86,10 +86,10 @@ const PatientNotificationManagement = () => {
     try {
       await api.delete(`/patient/notifications/${notificationId}`);
       setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-      toast.success('Notification deleted');
+      
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Error deleting notification');
+      
     }
   };
 
@@ -97,10 +97,10 @@ const PatientNotificationManagement = () => {
     try {
       await api.patch('/patient/notifications/mark-all-read');
       setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
-      toast.success('All notifications marked as read');
+      
     } catch (error) {
       console.error('Error marking all as read:', error);
-      toast.error('Error updating notifications');
+      
     }
   };
 

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AppointmentScheduling = () => {
   const [appointments, setAppointments] = useState([]);
@@ -75,7 +75,7 @@ const AppointmentScheduling = () => {
   const handleCreateAppointment = async () => {
     try {
       await api.post('/practitioner/appointments', newAppointment);
-      toast.success('Appointment scheduled successfully');
+      
       setShowCreateModal(false);
       setNewAppointment({
         patientId: '',
@@ -89,7 +89,7 @@ const AppointmentScheduling = () => {
       });
       fetchAppointments();
     } catch (error) {
-      toast.error('Error scheduling appointment');
+      
       console.error('Error:', error);
     }
   };
@@ -97,10 +97,10 @@ const AppointmentScheduling = () => {
   const updateAppointmentStatus = async (appointmentId, status) => {
     try {
       await api.put(`/practitioner/appointments/${appointmentId}`, { status });
-      toast.success(`Appointment ${status} successfully`);
+      
       fetchAppointments();
     } catch (error) {
-      toast.error('Error updating appointment');
+      
       console.error('Error:', error);
     }
   };

@@ -19,7 +19,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 import { mockPractitioners, simulateApiDelay, generatePaginatedResponse, filterData } from '../../services/mockAdminData';
 
 const PractitionerManagement = () => {
@@ -83,7 +83,7 @@ const PractitionerManagement = () => {
       }
     } catch (error) {
       console.error('Error fetching practitioners:', error);
-      toast.error('Error fetching practitioners');
+      
       
       // Use mock data as final fallback
       const paginatedResponse = generatePaginatedResponse(mockPractitioners, currentPage, practitionersPerPage);
@@ -108,14 +108,14 @@ const PractitionerManagement = () => {
         // Simulate successful update for demo purposes
       }
       
-      toast.success(`Practitioner ${status} successfully`);
+      
       setShowVerificationModal(false);
       setSelectedPractitioner(null);
       setVerificationNotes('');
       fetchPractitioners();
     } catch (error) {
       console.error('Error updating verification status:', error);
-      toast.error('Error updating verification status');
+      
     }
   };
 
@@ -132,11 +132,11 @@ const PractitionerManagement = () => {
         // Simulate successful update for demo purposes
       }
       
-      toast.success(`Practitioner ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      
       fetchPractitioners();
     } catch (error) {
       console.error('Error updating practitioner status:', error);
-      toast.error('Error updating practitioner status');
+      
     }
   };
 

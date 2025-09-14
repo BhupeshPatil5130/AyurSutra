@@ -7,7 +7,7 @@ import {
   ChevronRight, Plus, RefreshCw, Filter, Search
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientTherapyPlans = () => {
   const [therapyPlans, setTherapyPlans] = useState([]);
@@ -50,7 +50,7 @@ const PatientTherapyPlans = () => {
     } catch (error) {
       console.error('Error fetching therapy plans:', error);
       setTherapyPlans([]);
-      toast.error('Error loading therapy plans');
+      
     } finally {
       setLoading(false);
     }
@@ -72,10 +72,10 @@ const PatientTherapyPlans = () => {
       if (selectedPlan) {
         fetchProgressData(selectedPlan._id);
       }
-      toast.success('Session marked as complete');
+      
     } catch (error) {
       console.error('Error marking session complete:', error);
-      toast.error('Error updating session');
+      
     }
   };
 
@@ -83,10 +83,10 @@ const PatientTherapyPlans = () => {
     try {
       await api.patch(`/patient/diet-items/${itemId}`, { completed });
       fetchProgressData(selectedPlan._id);
-      toast.success('Diet compliance updated');
+      
     } catch (error) {
       console.error('Error updating diet compliance:', error);
-      toast.error('Error updating diet');
+      
     }
   };
 

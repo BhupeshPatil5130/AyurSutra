@@ -14,7 +14,7 @@ import {
   Calendar
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PractitionerProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -71,7 +71,7 @@ const PractitionerProfile = () => {
         consultationFee: response.data.consultationFee || 0
       });
     } catch (error) {
-      toast.error('Error fetching profile');
+      
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -82,11 +82,11 @@ const PractitionerProfile = () => {
     setSaving(true);
     try {
       await api.put('/practitioner/profile', formData);
-      toast.success('Profile updated successfully');
+      
       setEditMode(false);
       fetchProfile();
     } catch (error) {
-      toast.error('Error updating profile');
+      
       console.error('Error:', error);
     } finally {
       setSaving(false);

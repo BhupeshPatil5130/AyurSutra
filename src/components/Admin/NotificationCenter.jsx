@@ -16,7 +16,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
@@ -65,7 +65,7 @@ const NotificationCenter = () => {
       setNotifications(response.data.notifications || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      toast.error('Error fetching notifications');
+      
     } finally {
       setLoading(false);
     }
@@ -74,13 +74,13 @@ const NotificationCenter = () => {
   const sendNotification = async () => {
     try {
       await api.post('/admin/notifications/broadcast', formData);
-      toast.success('Notification sent successfully');
+      
       setShowCreateModal(false);
       resetForm();
       fetchNotifications();
     } catch (error) {
       console.error('Error sending notification:', error);
-      toast.error('Error sending notification');
+      
     }
   };
 
@@ -88,11 +88,11 @@ const NotificationCenter = () => {
     if (window.confirm('Are you sure you want to delete this notification?')) {
       try {
         await api.delete(`/admin/notifications/${notificationId}`);
-        toast.success('Notification deleted successfully');
+        
         fetchNotifications();
       } catch (error) {
         console.error('Error deleting notification:', error);
-        toast.error('Error deleting notification');
+        
       }
     }
   };

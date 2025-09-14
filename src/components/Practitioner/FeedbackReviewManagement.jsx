@@ -5,7 +5,7 @@ import {
   RefreshCw, Download, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const FeedbackReviewManagement = () => {
   const [reviews, setReviews] = useState([]);
@@ -34,7 +34,7 @@ const FeedbackReviewManagement = () => {
       setReviews(response.data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      toast.error('Error loading reviews');
+      
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const FeedbackReviewManagement = () => {
 
   const handleReply = async (reviewId) => {
     if (!replyText.trim()) {
-      toast.error('Please enter a reply');
+      
       return;
     }
 
@@ -59,13 +59,13 @@ const FeedbackReviewManagement = () => {
       await api.post(`/practitioner/reviews/${reviewId}/reply`, {
         reply: replyText
       });
-      toast.success('Reply sent successfully');
+      
       setShowModal(false);
       setReplyText('');
       fetchReviews();
     } catch (error) {
       console.error('Error sending reply:', error);
-      toast.error('Error sending reply');
+      
     }
   };
 

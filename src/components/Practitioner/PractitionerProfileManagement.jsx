@@ -5,7 +5,7 @@ import {
   AlertCircle, Plus, Trash2, Eye, RefreshCw, Settings
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PractitionerProfileManagement = () => {
   const [profile, setProfile] = useState({});
@@ -169,12 +169,12 @@ const PractitionerProfileManagement = () => {
       };
       
       await api.put('/practitioner/profile', updateData);
-      toast.success('Profile updated successfully');
+      
       setEditing(false);
       fetchProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Error updating profile');
+      
     }
   };
 

@@ -13,7 +13,7 @@ import {
   Eye
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const TherapyPlans = () => {
   const [therapyPlans, setTherapyPlans] = useState([]);
@@ -31,7 +31,7 @@ const TherapyPlans = () => {
       setTherapyPlans(response.data);
     } catch (error) {
       console.error('Error fetching therapy plans:', error);
-      toast.error('Error fetching therapy plans');
+      
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ const TherapyPlans = () => {
       setShowPlanDetails(true);
     } catch (error) {
       console.error('Error fetching plan details:', error);
-      toast.error('Error fetching plan details');
+      
     }
   };
 

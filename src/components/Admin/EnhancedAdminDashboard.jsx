@@ -22,7 +22,7 @@ import {
   Eye
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const EnhancedAdminDashboard = () => {
   const [stats, setStats] = useState({});
@@ -53,7 +53,7 @@ const EnhancedAdminDashboard = () => {
       setRevenueData(revenueRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      toast.error('Error loading dashboard data');
+      
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -74,10 +74,10 @@ const EnhancedAdminDashboard = () => {
       link.click();
       link.remove();
       
-      toast.success(`${type} report exported successfully`);
+      
     } catch (error) {
       console.error('Error exporting report:', error);
-      toast.error('Error exporting report');
+      
     }
   };
 

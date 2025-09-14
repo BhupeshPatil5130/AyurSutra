@@ -4,7 +4,7 @@ import {
   CheckCircle, AlertCircle, Settings, Copy, Download, Upload
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AvailabilityScheduleManagement = () => {
   const [availability, setAvailability] = useState({});
@@ -44,7 +44,7 @@ const AvailabilityScheduleManagement = () => {
     } catch (error) {
       console.error('Error fetching availability:', error);
       setAvailability({});
-      toast.error('Error loading availability');
+      
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ const AvailabilityScheduleManagement = () => {
         schedule: scheduleData,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
-      toast.success('Availability updated successfully');
+      
       setEditing(false);
       fetchAvailability();
     } catch (error) {
       console.error('Error saving availability:', error);
-      toast.error('Error saving availability');
+      
     }
   };
 

@@ -13,7 +13,7 @@ import {
   Mail
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PractitionerSearch = () => {
   const [practitioners, setPractitioners] = useState([]);
@@ -61,7 +61,7 @@ const PractitionerSearch = () => {
       setPractitioners(response.data);
     } catch (error) {
       console.error('Error fetching practitioners:', error);
-      toast.error('Error fetching practitioners');
+      
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ const PractitionerSearch = () => {
       setShowPractitionerDetails(true);
     } catch (error) {
       console.error('Error fetching practitioner details:', error);
-      toast.error('Error fetching practitioner details');
+      
     }
   };
 
@@ -84,7 +84,7 @@ const PractitionerSearch = () => {
         ...bookingData,
         practitionerId: selectedPractitioner._id
       });
-      toast.success('Appointment booked successfully');
+      
       setShowBookingModal(false);
       setShowPractitionerDetails(false);
       setBookingData({
@@ -95,7 +95,7 @@ const PractitionerSearch = () => {
       });
     } catch (error) {
       console.error('Error booking appointment:', error);
-      toast.error('Error booking appointment');
+      
     }
   };
 

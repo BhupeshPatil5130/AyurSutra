@@ -18,7 +18,7 @@ import {
   Trash2
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({});
@@ -46,7 +46,7 @@ const SystemSettings = () => {
       setSettings(response.data);
     } catch (error) {
       console.error('Error fetching settings:', error);
-      toast.error('Error fetching system settings');
+      
     } finally {
       setLoading(false);
     }
@@ -56,10 +56,10 @@ const SystemSettings = () => {
     try {
       setSaving(true);
       await api.put('/admin/settings', settings);
-      toast.success('Settings saved successfully');
+      
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Error saving settings');
+      
     } finally {
       setSaving(false);
     }
@@ -77,15 +77,9 @@ const SystemSettings = () => {
 
   const testConnection = async (type) => {
     try {
-      const response = await api.post(`/admin/settings/test-${type}`);
-      if (response.data.success) {
-        toast.success(`${type} connection successful`);
-      } else {
-        toast.error(`${type} connection failed`);
-      }
-    } catch (error) {
+      const response = await api.post(`/admin/settings/test-${type}`);} catch (error) {
       console.error(`Error testing ${type} connection:`, error);
-      toast.error(`Error testing ${type} connection`);
+      
     }
   };
 

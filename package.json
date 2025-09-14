@@ -22,7 +22,6 @@
     "react-router-dom": "^6.8.1",
     "axios": "^1.4.0",
     "socket.io-client": "^4.7.2",
-    "react-hot-toast": "^2.4.1",
     "lucide-react": "^0.400.0",
     "date-fns": "^2.30.0",
     "tailwindcss": "^4.1.13",

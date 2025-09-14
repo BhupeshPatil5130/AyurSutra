@@ -6,7 +6,7 @@ import {
   Droplets, Zap, TrendingUp, BarChart3, Edit, Trash2
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientMedicalRecords = () => {
   const [records, setRecords] = useState([]);
@@ -58,7 +58,7 @@ const PatientMedicalRecords = () => {
       setRecords(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching medical records:', error);
-      toast.error('Error loading medical records');
+      
       setRecords([]);
     } finally {
       setLoading(false);
@@ -87,10 +87,10 @@ const PatientMedicalRecords = () => {
         notes: '',
         recordedAt: new Date().toISOString().split('T')[0]
       });
-      toast.success('Vital sign recorded');
+      
     } catch (error) {
       console.error('Error adding vital sign:', error);
-      toast.error('Error recording vital sign');
+      
     }
   };
 
@@ -103,10 +103,10 @@ const PatientMedicalRecords = () => {
       try {
         const response = await api.post('/patient/medical-records/upload', formData);
         setRecords(prev => [response.data, ...prev]);
-        toast.success('Document uploaded successfully');
+        
       } catch (error) {
         console.error('Error uploading document:', error);
-        toast.error('Error uploading document');
+        
       }
     }
   };
@@ -126,7 +126,7 @@ const PatientMedicalRecords = () => {
       link.remove();
     } catch (error) {
       console.error('Error downloading record:', error);
-      toast.error('Error downloading record');
+      
     }
   };
 

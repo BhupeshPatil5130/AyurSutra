@@ -13,7 +13,7 @@ import {
   Activity
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -71,7 +71,7 @@ const PatientProfile = () => {
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast.error('Error fetching profile');
+      
     } finally {
       setLoading(false);
     }
@@ -80,12 +80,12 @@ const PatientProfile = () => {
   const handleSave = async () => {
     try {
       await api.put('/patient/profile', formData);
-      toast.success('Profile updated successfully');
+      
       setEditing(false);
       fetchProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Error updating profile');
+      
     }
   };
 

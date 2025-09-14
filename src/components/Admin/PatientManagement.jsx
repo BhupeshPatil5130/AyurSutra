@@ -19,7 +19,7 @@ import {
   User
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 import { mockPatients, mockAdminStats, simulateApiDelay, generatePaginatedResponse, filterData } from '../../services/mockAdminData';
 
 const PatientManagement = () => {
@@ -74,7 +74,7 @@ const PatientManagement = () => {
       }
     } catch (error) {
       console.error('Error fetching patients:', error);
-      toast.error('Error fetching patients');
+      
       
       // Use mock data as final fallback
       const paginatedResponse = generatePaginatedResponse(mockPatients, currentPage, patientsPerPage);

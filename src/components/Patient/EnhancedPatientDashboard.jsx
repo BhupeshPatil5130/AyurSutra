@@ -8,7 +8,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { getDashboardData } from '../../services/mockPatientData';
-import toast from 'react-hot-toast';
 
 const EnhancedPatientDashboard = () => {
   const [dashboardData, setDashboardData] = useState({});
@@ -34,7 +33,7 @@ const EnhancedPatientDashboard = () => {
       const mockData = getDashboardData(timeRange);
       setDashboardData(mockData);
       setUsingMockData(true);
-      toast.success('Dashboard loaded with sample data');
+      
     } finally {
       setLoading(false);
     }

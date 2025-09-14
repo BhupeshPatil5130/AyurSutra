@@ -14,7 +14,7 @@ import {
   Database
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AdminQuickActions = ({ onNavigate }) => {
   const [quickStats, setQuickStats] = useState({
@@ -47,22 +47,22 @@ const AdminQuickActions = ({ onNavigate }) => {
       switch (action) {
         case 'backup':
           await api.post('/admin/system/backup');
-          toast.success('System backup initiated');
+          
           break;
         case 'maintenance':
           await api.post('/admin/system/maintenance-mode');
-          toast.success('Maintenance mode toggled');
+          
           break;
         case 'clear-cache':
           await api.post('/admin/system/clear-cache');
-          toast.success('System cache cleared');
+          
           break;
         default:
           break;
       }
     } catch (error) {
       console.error('Error performing quick action:', error);
-      toast.error('Error performing action');
+      
     }
   };
 

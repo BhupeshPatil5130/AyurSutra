@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const EnhancedPractitionerDashboard = () => {
   const [dashboardData, setDashboardData] = useState({});
@@ -57,7 +57,7 @@ const EnhancedPractitionerDashboard = () => {
       setNotifications(Array.isArray(notificationsRes.data) ? notificationsRes.data : notificationsRes.data?.notifications || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      toast.error('Error loading dashboard data');
+      
     } finally {
       setLoading(false);
     }
@@ -68,11 +68,11 @@ const EnhancedPractitionerDashboard = () => {
       await api.patch(`/practitioner/appointments/${appointmentId}/status`, {
         status: 'completed'
       });
-      toast.success('Appointment marked as completed');
+      
       fetchDashboardData();
     } catch (error) {
       console.error('Error updating appointment:', error);
-      toast.error('Error updating appointment');
+      
     }
   };
 

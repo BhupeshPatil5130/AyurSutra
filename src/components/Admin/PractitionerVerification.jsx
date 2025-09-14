@@ -15,7 +15,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PractitionerVerification = () => {
   const { id } = useParams();
@@ -36,7 +36,7 @@ const PractitionerVerification = () => {
       const response = await api.get(`/admin/practitioners/${id}`);
       setPractitioner(response.data);
     } catch (error) {
-      toast.error('Error fetching practitioner details');
+      
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -45,7 +45,7 @@ const PractitionerVerification = () => {
 
   const handleVerification = async (status) => {
     if (!verificationNotes.trim() && status === 'rejected') {
-      toast.error('Please provide notes for rejection');
+      
       return;
     }
 
@@ -56,10 +56,10 @@ const PractitionerVerification = () => {
         notes: verificationNotes
       });
       
-      toast.success(`Practitioner ${status} successfully`);
+      
       navigate('/admin/practitioners');
     } catch (error) {
-      toast.error('Error updating verification status');
+      
       console.error('Error:', error);
     } finally {
       setVerifying(false);

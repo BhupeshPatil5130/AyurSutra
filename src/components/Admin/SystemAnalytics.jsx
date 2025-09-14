@@ -16,7 +16,7 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const SystemAnalytics = () => {
   const [analytics, setAnalytics] = useState({});
@@ -43,7 +43,7 @@ const SystemAnalytics = () => {
       setAnalytics(response.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      toast.error('Error fetching analytics data');
+      
     } finally {
       setLoading(false);
     }
@@ -63,10 +63,10 @@ const SystemAnalytics = () => {
       link.click();
       link.remove();
       
-      toast.success(`${type} analytics exported successfully`);
+      
     } catch (error) {
       console.error('Error exporting analytics:', error);
-      toast.error('Error exporting analytics');
+      
     }
   };
 

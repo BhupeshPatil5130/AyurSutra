@@ -6,7 +6,7 @@ import {
   ArrowUpRight, ArrowDownRight, History, Settings
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const PatientPaymentBilling = () => {
   const [payments, setPayments] = useState([]);
@@ -55,7 +55,7 @@ const PatientPaymentBilling = () => {
       setStats(statsRes.data);
     } catch (error) {
       console.error('Error fetching payment data:', error);
-      toast.error('Error loading payment information');
+      
     } finally {
       setLoading(false);
     }
@@ -75,10 +75,10 @@ const PatientPaymentBilling = () => {
         holderName: '',
         isDefault: false
       });
-      toast.success('Payment method added successfully');
+      
     } catch (error) {
       console.error('Error adding payment method:', error);
-      toast.error('Error adding payment method');
+      
     }
   };
 
@@ -86,10 +86,10 @@ const PatientPaymentBilling = () => {
     try {
       await api.post(`/patient/invoices/${invoiceId}/pay`, { paymentMethodId });
       fetchPaymentData();
-      toast.success('Payment processed successfully');
+      
     } catch (error) {
       console.error('Error processing payment:', error);
-      toast.error('Error processing payment');
+      
     }
   };
 
@@ -108,7 +108,7 @@ const PatientPaymentBilling = () => {
       link.remove();
     } catch (error) {
       console.error('Error downloading invoice:', error);
-      toast.error('Error downloading invoice');
+      
     }
   };
 

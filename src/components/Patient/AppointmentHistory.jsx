@@ -14,7 +14,7 @@ import {
   Search
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AppointmentHistory = () => {
   const [appointments, setAppointments] = useState([]);
@@ -51,7 +51,7 @@ const AppointmentHistory = () => {
       setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      toast.error('Error fetching appointments');
+      
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ const AppointmentHistory = () => {
       setShowAppointmentDetails(true);
     } catch (error) {
       console.error('Error fetching appointment details:', error);
-      toast.error('Error fetching appointment details');
+      
     }
   };
 
@@ -75,13 +75,13 @@ const AppointmentHistory = () => {
         appointmentId: selectedAppointment._id,
         practitionerId: selectedAppointment.practitionerId._id
       });
-      toast.success('Review submitted successfully');
+      
       setShowReviewModal(false);
       setShowAppointmentDetails(false);
       fetchAppointments();
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error('Error submitting review');
+      
     }
   };
 
@@ -89,11 +89,11 @@ const AppointmentHistory = () => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
       try {
         await api.put(`/patient/appointments/${appointmentId}/cancel`);
-        toast.success('Appointment cancelled successfully');
+        
         fetchAppointments();
       } catch (error) {
         console.error('Error cancelling appointment:', error);
-        toast.error('Error cancelling appointment');
+        
       }
     }
   };

@@ -19,7 +19,7 @@ import {
   Edit
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AppointmentManagement = () => {
   const [appointments, setAppointments] = useState([]);
@@ -64,7 +64,7 @@ const AppointmentManagement = () => {
       setTotalAppointments(response.data.total);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      toast.error('Error fetching appointments');
+      
     } finally {
       setLoading(false);
     }
@@ -85,12 +85,12 @@ const AppointmentManagement = () => {
         status: newStatus
       });
       
-      toast.success(`Appointment ${newStatus} successfully`);
+      
       fetchAppointments();
       fetchStats();
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      toast.error('Error updating appointment status');
+      
     }
   };
 
@@ -101,7 +101,7 @@ const AppointmentManagement = () => {
       setShowDetailsModal(true);
     } catch (error) {
       console.error('Error fetching appointment details:', error);
-      toast.error('Error fetching appointment details');
+      
     }
   };
 

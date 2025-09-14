@@ -5,7 +5,7 @@ import {
   Clock, FileText, Activity, TrendingUp, X, Save, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const AdvancedPatientManagement = () => {
   const [patients, setPatients] = useState([]);
@@ -32,7 +32,7 @@ const AdvancedPatientManagement = () => {
     } catch (error) {
       console.error('Error fetching patients:', error);
       setPatients([]);
-      toast.error('Error loading patients');
+      
     } finally {
       setLoading(false);
     }
@@ -42,18 +42,18 @@ const AdvancedPatientManagement = () => {
     if (window.confirm('Are you sure you want to delete this patient?')) {
       try {
         await api.delete(`/practitioner/patients/${patientId}`);
-        toast.success('Patient deleted successfully');
+        
         fetchPatients();
       } catch (error) {
         console.error('Error deleting patient:', error);
-        toast.error('Error deleting patient');
+        
       }
     }
   };
 
   const handleBulkAction = async (action) => {
     if (selectedPatients.length === 0) {
-      toast.error('Please select patients first');
+      
       return;
     }
 
@@ -62,12 +62,12 @@ const AdvancedPatientManagement = () => {
         patientIds: selectedPatients,
         action
       });
-      toast.success(`Bulk ${action} completed successfully`);
+      
       setSelectedPatients([]);
       fetchPatients();
     } catch (error) {
       console.error(`Error performing bulk ${action}:`, error);
-      toast.error(`Error performing bulk ${action}`);
+      
     }
   };
 

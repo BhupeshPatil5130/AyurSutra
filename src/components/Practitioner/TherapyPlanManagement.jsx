@@ -13,7 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import api from '../../utils/api';
-import toast from 'react-hot-toast';
+
 
 const TherapyPlanManagement = () => {
   const [therapyPlans, setTherapyPlans] = useState([]);
@@ -83,12 +83,12 @@ const TherapyPlanManagement = () => {
   const handleCreatePlan = async () => {
     try {
       await api.post('/practitioner/therapy-plans', formData);
-      toast.success('Therapy plan created successfully');
+      
       setShowCreateModal(false);
       resetForm();
       fetchTherapyPlans();
     } catch (error) {
-      toast.error('Error creating therapy plan');
+      
       console.error('Error:', error);
     }
   };
@@ -96,12 +96,12 @@ const TherapyPlanManagement = () => {
   const handleUpdatePlan = async () => {
     try {
       await api.put(`/practitioner/therapy-plans/${editingPlan._id}`, formData);
-      toast.success('Therapy plan updated successfully');
+      
       setEditingPlan(null);
       resetForm();
       fetchTherapyPlans();
     } catch (error) {
-      toast.error('Error updating therapy plan');
+      
       console.error('Error:', error);
     }
   };

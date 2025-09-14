@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, UserPlus, User, Shield, Heart, Stethoscope } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -30,12 +29,12 @@ const Register = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      
       return;
     }
 
@@ -44,7 +43,7 @@ const Register = () => {
     const result = await register(formData);
     
     if (result.success) {
-      toast.success('Registration successful!');
+      
       // Redirect based on role
       switch (result.user.role) {
         case 'admin':
@@ -58,12 +57,7 @@ const Register = () => {
           break;
         default:
           navigate('/');
-      }
-    } else {
-      toast.error(result.message);
-    }
-    
-    setLoading(false);
+      }}setLoading(false);
   };
 
   const handleChange = (e) => {

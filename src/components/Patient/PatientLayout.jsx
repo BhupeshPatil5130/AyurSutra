@@ -21,7 +21,6 @@ import {
   Folder
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
 
 const PatientLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,10 +33,10 @@ const PatientLayout = () => {
     try {
       setLoading(true);
       await logout();
-      toast.success('Logged out successfully');
+      
       navigate('/login');
     } catch (error) {
-      toast.error('Error logging out');
+      
     } finally {
       setLoading(false);
     }
