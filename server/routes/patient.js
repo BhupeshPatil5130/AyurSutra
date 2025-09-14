@@ -23,6 +23,16 @@ import DietItem from '../models/DietItem.js';
 
 const router = express.Router();
 
+// Test endpoint without auth
+router.get('/test-no-auth', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Patient test endpoint working',
+    useMockDb: req.useMockDb,
+    mockDb: req.mockDb ? 'available' : 'not available'
+  });
+});
+
 // Apply authentication and patient authorization to all routes
 router.use(authenticate);
 router.use(authorize('patient'));

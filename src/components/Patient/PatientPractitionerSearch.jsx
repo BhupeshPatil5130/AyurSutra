@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, MapPin, Star, Clock, DollarSign, User,
   Phone, Video, MessageSquare, Calendar, Award, Shield,
-  ChevronDown, Heart, Eye, BookOpen, RefreshCw, SlidersHorizontal
+  ChevronDown, Heart, Eye, BookOpen, RefreshCw, SlidersHorizontal,
+  Stethoscope, GraduationCap, Languages
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { getPractitioners } from '../../services/mockPatientData';
 import toast from 'react-hot-toast';
 
 const PatientPractitionerSearch = () => {
@@ -14,6 +17,9 @@ const PatientPractitionerSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPractitioner, setSelectedPractitioner] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [usingMockData, setUsingMockData] = useState(false);
+  const [viewMode, setViewMode] = useState('grid');
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     specialization: '',
     location: '',
@@ -25,13 +31,14 @@ const PatientPractitionerSearch = () => {
   });
 
   const specializations = [
-    'Panchakarma Specialist',
-    'Ayurvedic Physician',
-    'Herbal Medicine',
-    'Yoga Therapy',
-    'Pulse Diagnosis',
-    'Detoxification',
-    'Rejuvenation Therapy'
+    { value: 'Panchakarma', label: 'Panchakarma Specialist', icon: '🌿' },
+    { value: 'Digestive Health', label: 'Digestive Health', icon: '🫁' },
+    { value: 'Herbal Medicine', label: 'Herbal Medicine', icon: '🌱' },
+    { value: 'Yoga Therapy', label: 'Yoga Therapy', icon: '🧘' },
+    { value: 'Meditation', label: 'Meditation & Mindfulness', icon: '🕯️' },
+    { value: 'Stress Management', label: 'Stress Management', icon: '💆' },
+    { value: 'Women\'s Health', label: 'Women\'s Health', icon: '👩' },
+    { value: 'Nutrition', label: 'Ayurvedic Nutrition', icon: '🥗' }
   ];
 
   const locations = [
@@ -41,7 +48,7 @@ const PatientPractitionerSearch = () => {
 
   const languages = [
     'English', 'Hindi', 'Marathi', 'Tamil', 'Telugu', 
-    'Gujarati', 'Bengali', 'Kannada', 'Malayalam'
+    'Gujarati', 'Bengali', 'Kannada', 'Malayalam', 'Sanskrit'
   ];
 
   useEffect(() => {
@@ -50,56 +57,103 @@ const PatientPractitionerSearch = () => {
 
   useEffect(() => {
     filterPractitioners();
-  }, [searchTerm, filters, practitioners]);
+  }, [practitioners, searchTerm, filters]);
 
   const fetchPractitioners = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/patient/practitioners/search');
-      setPractitioners(Array.isArray(response.data) ? response.data : []);
+      setUsingMockData(false);
+      const response = await api.get('/patient/practitioners');
+      setPractitioners(response.data.practitioners || []);
     } catch (error) {
       console.error('Error fetching practitioners:', error);
-      toast.error('Error loading practitioners');
-      setPractitioners([]);
+      // Use mock data as fallback
+      const mockPractitioners = getPractitioners();
+      setPractitioners(mockPractitioners);
+      setUsingMockData(true);
+      toast.success('Practitioners loaded with sample data');
     } finally {
       setLoading(false);
     }
   };
 
   const filterPractitioners = () => {
-    if (!Array.isArray(practitioners)) {
-      setFilteredPractitioners([]);
-      return;
-    }
-    
-    let filtered = practitioners.filter(practitioner =>
-      practitioner.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      practitioner.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      practitioner.bio?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = [...practitioners];
 
+    // Search term filter
+    if (searchTerm) {
+      filtered = filtered.filter(practitioner => 
+        practitioner.userId?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        practitioner.userId?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        practitioner.specializations?.some(spec => 
+          spec.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    // Specialization filter
     if (filters.specialization) {
-      filtered = filtered.filter(p => p.specialization === filters.specialization);
+      filtered = filtered.filter(practitioner => 
+        practitioner.specializations?.includes(filters.specialization)
+      );
     }
-    if (filters.location) {
-      filtered = filtered.filter(p => p.location === filters.location || p.onlineConsultation);
-    }
+
+    // Rating filter
     if (filters.rating) {
-      filtered = filtered.filter(p => p.rating >= parseFloat(filters.rating));
+      const minRating = parseFloat(filters.rating);
+      filtered = filtered.filter(practitioner => 
+        (practitioner.rating || 0) >= minRating
+      );
     }
+
+    // Experience filter
     if (filters.experience) {
-      filtered = filtered.filter(p => p.experience >= parseInt(filters.experience));
+      const minExperience = parseInt(filters.experience);
+      filtered = filtered.filter(practitioner => 
+        (practitioner.experience || 0) >= minExperience
+      );
     }
+
+    // Fee filter
     if (filters.consultationFee) {
-      const [min, max] = filters.consultationFee.split('-').map(Number);
-      filtered = filtered.filter(p => p.consultationFee >= min && p.consultationFee <= max);
+      const maxFee = parseInt(filters.consultationFee);
+      filtered = filtered.filter(practitioner => 
+        (practitioner.consultationFee || 0) <= maxFee
+      );
     }
+
+    // Language filter
     if (filters.language) {
-      filtered = filtered.filter(p => p.languages?.includes(filters.language));
+      filtered = filtered.filter(practitioner => 
+        practitioner.languages?.includes(filters.language)
+      );
     }
 
     setFilteredPractitioners(filtered);
   };
+
+  const handleBookAppointment = (practitioner) => {
+    navigate('/patient/appointments', { 
+      state: { selectedPractitioner: practitioner } 
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      specialization: '',
+      location: '',
+      rating: '',
+      experience: '',
+      consultationFee: '',
+      availability: '',
+      language: ''
+    });
+    setSearchTerm('');
+  };
+
+  useEffect(() => {
+    filterPractitioners();
+  }, [searchTerm, filters, practitioners]);
 
   const bookConsultation = async (practitionerId) => {
     try {
@@ -127,17 +181,6 @@ const PatientPractitionerSearch = () => {
     }
   };
 
-  const clearFilters = () => {
-    setFilters({
-      specialization: '',
-      location: '',
-      rating: '',
-      experience: '',
-      consultationFee: '',
-      availability: '',
-      language: ''
-    });
-  };
 
   if (loading) {
     return (
@@ -201,7 +244,7 @@ const PatientPractitionerSearch = () => {
                 >
                   <option value="">All Specializations</option>
                   {specializations.map((spec) => (
-                    <option key={spec} value={spec}>{spec}</option>
+                    <option key={spec.value} value={spec.value}>{spec.label}</option>
                   ))}
                 </select>
               </div>

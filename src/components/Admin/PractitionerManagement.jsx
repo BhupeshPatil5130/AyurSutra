@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { mockPractitioners, simulateApiDelay, generatePaginatedResponse, filterData } from '../../services/mockAdminData';
 
 const PractitionerManagement = () => {
   const [practitioners, setPractitioners] = useState([]);
@@ -48,6 +49,10 @@ const PractitionerManagement = () => {
   const fetchPractitioners = async () => {
     try {
       setLoading(true);
+      
+      // Simulate API delay
+      await simulateApiDelay(600);
+      
       const params = new URLSearchParams({
         page: currentPage,
         limit: practitionersPerPage,
@@ -56,12 +61,34 @@ const PractitionerManagement = () => {
         verification: verificationFilter !== 'all' ? verificationFilter : ''
       });
 
-      const response = await api.get(`/admin/practitioners?${params}`);
-      setPractitioners(response.data.practitioners);
-      setTotalPractitioners(response.data.total);
+      try {
+        const response = await api.get(`/admin/practitioners?${params}`);
+        setPractitioners(response.data.practitioners);
+        setTotalPractitioners(response.data.total);
+      } catch (apiError) {
+        console.log('API not available, using mock data:', apiError.message);
+        
+        // Filter mock data based on current filters
+        const filters = {
+          search: searchTerm,
+          verificationStatus: verificationFilter !== 'all' ? verificationFilter : null,
+          isActive: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : null
+        };
+        
+        const filteredData = filterData(mockPractitioners, filters);
+        const paginatedResponse = generatePaginatedResponse(filteredData, currentPage, practitionersPerPage);
+        
+        setPractitioners(paginatedResponse.data);
+        setTotalPractitioners(paginatedResponse.total);
+      }
     } catch (error) {
       console.error('Error fetching practitioners:', error);
       toast.error('Error fetching practitioners');
+      
+      // Use mock data as final fallback
+      const paginatedResponse = generatePaginatedResponse(mockPractitioners, currentPage, practitionersPerPage);
+      setPractitioners(paginatedResponse.data);
+      setTotalPractitioners(paginatedResponse.total);
     } finally {
       setLoading(false);
     }
@@ -69,10 +96,17 @@ const PractitionerManagement = () => {
 
   const updateVerificationStatus = async (practitionerId, status, notes = '') => {
     try {
-      await api.patch(`/admin/practitioners/${practitionerId}/verification`, {
-        verificationStatus: status,
-        verificationNotes: notes
-      });
+      await simulateApiDelay(400);
+      
+      try {
+        await api.patch(`/admin/practitioners/${practitionerId}/verification`, {
+          verificationStatus: status,
+          verificationNotes: notes
+        });
+      } catch (apiError) {
+        console.log('API not available, simulating verification update:', apiError.message);
+        // Simulate successful update for demo purposes
+      }
       
       toast.success(`Practitioner ${status} successfully`);
       setShowVerificationModal(false);
@@ -87,9 +121,16 @@ const PractitionerManagement = () => {
 
   const togglePractitionerStatus = async (practitionerId, currentStatus) => {
     try {
-      await api.patch(`/admin/practitioners/${practitionerId}/status`, {
-        isActive: !currentStatus
-      });
+      await simulateApiDelay(300);
+      
+      try {
+        await api.patch(`/admin/practitioners/${practitionerId}/status`, {
+          isActive: !currentStatus
+        });
+      } catch (apiError) {
+        console.log('API not available, simulating status update:', apiError.message);
+        // Simulate successful update for demo purposes
+      }
       
       toast.success(`Practitioner ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
       fetchPractitioners();

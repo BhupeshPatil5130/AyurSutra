@@ -16,7 +16,18 @@ import {
   Database,
   LogOut,
   Menu,
-  X
+  X,
+  ChevronRight,
+  Home,
+  TrendingUp,
+  UserCog,
+  Stethoscope,
+  FileBarChart,
+  CreditCard,
+  BookOpen,
+  AlertCircle,
+  History,
+  Cog
 } from 'lucide-react';
 
 // Import all admin components
@@ -57,79 +68,112 @@ const AdminLayout = () => {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      icon: LayoutDashboard,
+      icon: Home,
       component: EnhancedAdminDashboard,
-      description: 'System overview and analytics'
+      description: 'System overview and analytics',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200'
     },
     {
       id: 'users',
       label: 'User Management',
-      icon: Users,
+      icon: UserCog,
       component: UserManagement,
-      description: 'Manage all system users'
+      description: 'Manage all system users',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200'
     },
     {
       id: 'practitioners',
       label: 'Practitioners',
-      icon: UserCheck,
+      icon: Stethoscope,
       component: PractitionerManagement,
-      description: 'Practitioner verification and management'
+      description: 'Practitioner verification and management',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200'
     },
     {
       id: 'patients',
       label: 'Patients',
       icon: Heart,
       component: PatientManagement,
-      description: 'Patient records and management'
+      description: 'Patient records and management',
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      borderColor: 'border-pink-200'
     },
     {
       id: 'appointments',
       label: 'Appointments',
       icon: Calendar,
       component: AppointmentManagement,
-      description: 'Appointment scheduling and management'
+      description: 'Appointment scheduling and management',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-200'
     },
     {
       id: 'analytics',
       label: 'Analytics',
-      icon: BarChart3,
+      icon: TrendingUp,
       component: SystemAnalytics,
-      description: 'System analytics and reports'
+      description: 'System analytics and reports',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200'
     },
     {
       id: 'revenue',
       label: 'Revenue',
-      icon: DollarSign,
+      icon: CreditCard,
       component: RevenueManagement,
-      description: 'Financial management and billing'
+      description: 'Financial management and billing',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200'
     },
     {
       id: 'content',
       label: 'Content',
-      icon: FileText,
+      icon: BookOpen,
       component: ContentManagement,
-      description: 'Content and resource management'
+      description: 'Content and resource management',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      borderColor: 'border-cyan-200'
     },
     {
       id: 'notifications',
       label: 'Notifications',
       icon: Bell,
       component: NotificationCenter,
-      description: 'System notifications and alerts'
+      description: 'System notifications and alerts',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200'
     },
     {
       id: 'audit',
       label: 'Audit Logs',
-      icon: Activity,
+      icon: History,
       component: AuditLogs,
-      description: 'System activity and audit trails'
+      description: 'System activity and audit trails',
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      borderColor: 'border-gray-200'
     },
     {
       id: 'settings',
       label: 'Settings',
-      icon: Settings,
+      icon: Cog,
       component: SystemSettings,
-      description: 'System configuration and settings'
+      description: 'System configuration and settings',
+      color: 'text-slate-600',
+      bgColor: 'bg-slate-50',
+      borderColor: 'border-slate-200'
     }
   ];
 
@@ -142,42 +186,48 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-gray-100">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+      <div className={`${sidebarOpen ? 'w-72' : 'w-20'} bg-white/80 backdrop-blur-xl shadow-2xl border-r border-gray-200/50 transition-all duration-300 flex flex-col`}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200/50">
           <div className="flex items-center justify-between">
             {sidebarOpen && (
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-white" />
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Shield className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-                  <p className="text-xs text-gray-500">Panchakarma System</p>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    Admin Panel
+                  </h1>
+                  <p className="text-sm text-gray-500 font-medium">AyurSutra System</p>
                 </div>
               </div>
             )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1 rounded-md hover:bg-gray-100"
+              className="p-2 rounded-xl hover:bg-gray-100/80 transition-all duration-200 hover:scale-105"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? <X className="h-5 w-5 text-gray-600" /> : <Menu className="h-5 w-5 text-gray-600" />}
             </button>
           </div>
         </div>
 
         {/* Admin Info */}
         {sidebarOpen && (
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+          <div className="p-6 border-b border-gray-200/50">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 {adminInfo.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{adminInfo.name}</p>
-                <p className="text-xs text-gray-500 truncate">{adminInfo.email}</p>
+                <p className="text-base font-semibold text-gray-900 truncate">{adminInfo.name}</p>
+                <p className="text-sm text-gray-500 truncate">{adminInfo.email}</p>
+                <div className="flex items-center mt-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <span className="text-xs text-green-600 font-medium">Online</span>
+                </div>
               </div>
             </div>
           </div>
@@ -193,19 +243,26 @@ const AdminLayout = () => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center space-x-4 px-4 py-3 rounded-2xl text-left transition-all duration-200 group ${
                   isActive
-                    ? 'bg-green-100 text-green-700 border border-green-200'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? `${item.bgColor} ${item.color} border ${item.borderColor} shadow-lg transform scale-105`
+                    : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 hover:shadow-md hover:scale-102'
                 }`}
                 title={!sidebarOpen ? item.label : ''}
               >
-                <Icon className={`h-5 w-5 ${isActive ? 'text-green-600' : 'text-gray-500'}`} />
+                <div className={`p-2 rounded-xl ${isActive ? 'bg-white/80' : 'group-hover:bg-white/60'}`}>
+                  <Icon className={`h-5 w-5 ${isActive ? item.color : 'text-gray-500 group-hover:text-gray-700'}`} />
+                </div>
                 {sidebarOpen && (
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium">{item.label}</span>
-                    <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                    <span className={`text-sm font-semibold ${isActive ? item.color : 'text-gray-700 group-hover:text-gray-900'}`}>
+                      {item.label}
+                    </span>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{item.description}</p>
                   </div>
+                )}
+                {sidebarOpen && (
+                  <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isActive ? 'rotate-90' : 'group-hover:translate-x-1'}`} />
                 )}
               </button>
             );
@@ -213,14 +270,16 @@ const AdminLayout = () => {
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200/50">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full flex items-center space-x-4 px-4 py-3 text-red-600 hover:bg-red-50/80 rounded-2xl transition-all duration-200 hover:shadow-md hover:scale-102 group"
             title={!sidebarOpen ? 'Logout' : ''}
           >
-            <LogOut className="h-5 w-5" />
-            {sidebarOpen && <span className="text-sm font-medium">Logout</span>}
+            <div className="p-2 rounded-xl group-hover:bg-red-100/60">
+              <LogOut className="h-5 w-5" />
+            </div>
+            {sidebarOpen && <span className="text-sm font-semibold">Logout</span>}
           </button>
         </div>
       </div>
@@ -228,29 +287,36 @@ const AdminLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <header className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-gray-200/50 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 {menuItems.find(item => item.id === activeTab)?.label || 'Dashboard'}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-600 font-medium mt-1">
                 {menuItems.find(item => item.id === activeTab)?.description || 'System overview and analytics'}
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Database className="h-4 w-4" />
-                <span>System Status: Online</span>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3 px-4 py-2 bg-green-50 rounded-full border border-green-200">
+                <Database className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-semibold text-green-700">System Online</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               </div>
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Bell className="h-5 w-5" />
+                <span className="font-medium">Notifications</span>
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <ActiveComponent />
+        <main className="flex-1 overflow-y-auto p-8 bg-gradient-to-br from-gray-50/50 to-white/50">
+          <div className="max-w-7xl mx-auto">
+            <ActiveComponent />
+          </div>
         </main>
       </div>
     </div>

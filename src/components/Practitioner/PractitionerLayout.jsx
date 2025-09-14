@@ -115,13 +115,7 @@ const PractitionerLayout = () => {
       path: '/practitioner/messages',
       description: 'Communication with patients'
     },
-    {
-      id: 'revenue',
-      label: 'Revenue',
-      icon: DollarSign,
-      path: '/practitioner/revenue',
-      description: 'Track earnings and revenue'
-    },
+    
     {
       id: 'analytics',
       label: 'Analytics',
